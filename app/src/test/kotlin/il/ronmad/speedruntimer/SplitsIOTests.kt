@@ -4,6 +4,7 @@ import il.ronmad.speedruntimer.web.Failure
 import il.ronmad.speedruntimer.web.SplitsIO
 import il.ronmad.speedruntimer.web.Success
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -39,6 +40,7 @@ class SplitsIOTests {
         }
     }
 
+    @Ignore("Integration test - requires network")
     @Test
     fun testGetASNOOBRun() {
         runBlocking {

@@ -4,6 +4,7 @@ import il.ronmad.speedruntimer.web.Failure
 import il.ronmad.speedruntimer.web.Src
 import il.ronmad.speedruntimer.web.Success
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -11,6 +12,7 @@ import kotlin.test.fail
 
 class SrcTests {
 
+    @Ignore("Integration test - requires network")
     @Test
     fun testGame140() {
         runBlocking {
@@ -27,6 +29,7 @@ class SrcTests {
         }
     }
 
+    @Ignore("Integration test - requires network")
     @Test
     fun testGameThoth() {
         runBlocking {
@@ -44,6 +47,7 @@ class SrcTests {
         }
     }
 
+    @Ignore("Integration test - requires network")
     @Test
     fun testLeaderboards() {
         runBlocking {

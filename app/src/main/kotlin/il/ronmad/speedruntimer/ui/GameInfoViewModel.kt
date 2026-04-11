@@ -14,12 +14,12 @@ import java.io.IOException
 
 class GameInfoViewModel : ViewModel(), CoroutineScope by MainScope() {
 
-    private val _leaderboards = MutableLiveData<List<SrcLeaderboard>>()
-    val leaderboards: LiveData<List<SrcLeaderboard>>
+    private val _leaderboards = MutableLiveData<List<SrcLeaderboard>?>(null)
+    val leaderboards: LiveData<List<SrcLeaderboard>?>
         get() = _leaderboards
 
-    private val _refreshSpinner = MutableLiveData<Boolean>()
-    val refreshSpinner: LiveData<Boolean>
+    private val _refreshSpinner = MutableLiveData<Boolean?>(null)
+    val refreshSpinner: LiveData<Boolean?>
         get() = _refreshSpinner
 
     private val _toast = MutableLiveData<GameInfoToast>()

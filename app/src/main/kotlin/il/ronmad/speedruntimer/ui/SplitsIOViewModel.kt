@@ -14,11 +14,11 @@ import java.io.IOException
 class SplitsIOViewModel : ViewModel(), CoroutineScope by MainScope() {
 
     // Import
-    private val _importedRun = MutableLiveData<SplitsIO.Run>()
-    val importedRun: LiveData<Event<SplitsIO.Run>> = _importedRun.map { Event(it) }
+    private val _importedRun = MutableLiveData<SplitsIO.Run?>()
+    val importedRun: LiveData<Event<SplitsIO.Run?>> = _importedRun.map { Event(it) }
 
-    private val _progressBar = MutableLiveData<Boolean>()
-    val progressBar: LiveData<Boolean>
+    private val _progressBar = MutableLiveData<Boolean?>(null)
+    val progressBar: LiveData<Boolean?>
         get() = _progressBar
 
     private val _toast = MutableLiveData<SplitsIOToast>()

@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import il.ronmad.speedruntimer.MyApplication
 import il.ronmad.speedruntimer.ui.util.Event
 import kotlinx.coroutines.*
@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
 class InstalledAppsViewModel(application: Application) : AndroidViewModel(application), CoroutineScope by MainScope() {
 
     private val _setupDone = MutableLiveData<Boolean>()
-    val setupDone: LiveData<Event<Boolean>> = Transformations.map(_setupDone) { Event(it) }
+    val setupDone: LiveData<Event<Boolean>> = _setupDone.map { Event(it) }
 
     fun setupInstalledAppsMap() = launch {
         getApplication<MyApplication>().setupInstalledAppsMap()

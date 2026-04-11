@@ -2,7 +2,7 @@ package il.ronmad.speedruntimer.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import androidx.lifecycle.ViewModel
 import il.ronmad.speedruntimer.ui.util.Event
 import il.ronmad.speedruntimer.web.Failure
@@ -15,18 +15,18 @@ class SplitsIOViewModel : ViewModel(), CoroutineScope by MainScope() {
 
     // Import
     private val _importedRun = MutableLiveData<SplitsIO.Run>()
-    val importedRun: LiveData<Event<SplitsIO.Run>> = Transformations.map(_importedRun) { Event(it) }
+    val importedRun: LiveData<Event<SplitsIO.Run>> = _importedRun.map { Event(it) }
 
     private val _progressBar = MutableLiveData<Boolean>()
     val progressBar: LiveData<Boolean>
         get() = _progressBar
 
     private val _toast = MutableLiveData<SplitsIOToast>()
-    val toast: LiveData<Event<SplitsIOToast>> = Transformations.map(_toast) { Event(it) }
+    val toast: LiveData<Event<SplitsIOToast>> = _toast.map { Event(it) }
 
     // Export
     private val _claimUri = MutableLiveData<String>()
-    val claimUri: LiveData<Event<String>> = Transformations.map(_claimUri) { Event(it) }
+    val claimUri: LiveData<Event<String>> = _claimUri.map { Event(it) }
 
     fun importRun(id: String) = launch {
         try {

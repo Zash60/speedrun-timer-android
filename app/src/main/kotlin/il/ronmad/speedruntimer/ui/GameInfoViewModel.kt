@@ -2,7 +2,7 @@ package il.ronmad.speedruntimer.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import androidx.lifecycle.ViewModel
 import il.ronmad.speedruntimer.ui.util.Event
 import il.ronmad.speedruntimer.web.Failure
@@ -23,7 +23,7 @@ class GameInfoViewModel : ViewModel(), CoroutineScope by MainScope() {
         get() = _refreshSpinner
 
     private val _toast = MutableLiveData<GameInfoToast>()
-    val toast: LiveData<Event<GameInfoToast>> = Transformations.map(_toast) { Event(it) }
+    val toast: LiveData<Event<GameInfoToast>> = _toast.map { Event(it) }
 
     fun refreshInfo(gameName: String) = launch {
         try {

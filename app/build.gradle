@@ -46,6 +46,9 @@ android {
         test.java.srcDirs += "src/test/kotlin"
         androidTest.java.srcDirs += 'src/androidTest/kotlin'
     }
+    configurations.all {
+        resolutionStrategy.force 'androidx.annotation:annotation:1.7.1'
+    }
 }
 
 dependencies {

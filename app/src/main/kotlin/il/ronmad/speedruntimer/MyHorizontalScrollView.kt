@@ -12,7 +12,7 @@ class MyHorizontalScrollView : HorizontalScrollView {
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
-    override fun requestChildRectangleOnScreen(child: View?, rectangle: Rect?, immediate: Boolean): Boolean {
+    override fun requestChildRectangleOnScreen(child: View, rectangle: Rect, immediate: Boolean, focused: Boolean): Boolean {
         return true
     }
 }

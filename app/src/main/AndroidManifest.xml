@@ -28,7 +28,9 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".TimerService" />
+        <service 
+            android:name=".TimerService"
+            android:foregroundServiceType="shortService" />
 
         <activity
             android:name=".activities.SettingsActivity"

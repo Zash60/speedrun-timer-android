@@ -25,8 +25,8 @@ class SplitsIOViewModel : ViewModel(), CoroutineScope by MainScope() {
     val toast: LiveData<Event<SplitsIOToast>> = _toast.map { Event(it) }
 
     // Export
-    private val _claimUri = MutableLiveData<String>()
-    val claimUri: LiveData<Event<String>> = _claimUri.map { Event(it) }
+    private val _claimUri = MutableLiveData<String?>()
+    val claimUri: LiveData<Event<String?>> = _claimUri.map { Event(it) }
 
     fun importRun(id: String) = launch {
         try {

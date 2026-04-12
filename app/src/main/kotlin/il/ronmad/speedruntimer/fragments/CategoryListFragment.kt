@@ -39,7 +39,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     companion object {
         /** True when user is in the middle of granting overlay/notification permissions */
-        @JvmStatic var isInPermissionFlow = false
+        @JvmField var isInPermissionFlow = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

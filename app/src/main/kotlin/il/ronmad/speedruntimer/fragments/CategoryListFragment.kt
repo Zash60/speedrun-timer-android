@@ -45,7 +45,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             ActivityResultContracts.StartActivityForResult()
         ) {
             if (Settings.canDrawOverlays(requireContext())) {
-                launchTimer()
+                checkNotificationsAndStartTimer()
             } else {
                 retryPermissionWithBackoff()
             }
@@ -177,6 +177,26 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     /**
+     * Checks notification permission (Android 13+) and launches timer if granted,
+     * or requests permission if not.
+     */
+    private fun checkNotificationsAndStartTimer() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+
+        launchTimer()
+    }
+
+    /**
      * Retries permission check with exponential backoff.
      * The system may take time to register the overlay permission after the settings screen closes.
      */
@@ -186,7 +206,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             repeat(3) { attempt ->
                 delay(500L * (attempt + 1))
                 if (Settings.canDrawOverlays(requireContext())) {
-                    launchTimer()
+                    checkNotificationsAndStartTimer()
                     return@repeat
                 }
             }

@@ -89,6 +89,7 @@ class TimerService : Service() {
 
         hasSplits = category.splits.isNotEmpty()
 
+        prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setupOverlay()
         loadPreferences()
         setupNotificationBroadcastReceiver()

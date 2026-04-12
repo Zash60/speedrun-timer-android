@@ -13,7 +13,7 @@ import io.realm.Realm
 
 abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> T) : Fragment() {
 
-    private var _viewBinding: T? = null
+    protected var _viewBinding: T? = null
     internal val viewBinding get() = _viewBinding!!
 
     protected lateinit var realm: Realm

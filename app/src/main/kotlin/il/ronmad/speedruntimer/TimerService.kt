@@ -549,10 +549,10 @@ class TimerService : Service() {
         if (updateData) {
             if (newPB == 0L) {
                 category.incrementRunCount()
-                category.updateSplits(segmentTimes, isNewRecord = false)
+                category.updateSplits(segmentTimes, isNewPB = false)
             } else {
                 category.updateData(bestTime = newPB, runCount = category.runCount + 1)
-                category.updateSplits(segmentTimes, isNewRecord = true)
+                category.updateSplits(segmentTimes, isNewPB = true)
                 FSTWidget.forceUpdateWidgets(this)
             }
         }

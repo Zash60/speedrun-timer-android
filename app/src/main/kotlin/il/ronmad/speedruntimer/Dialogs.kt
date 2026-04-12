@@ -302,4 +302,15 @@ object Dialogs {
             negativeButton(android.R.string.cancel)
         }
     }
+
+    internal fun showNotificationPermissionDialog(context: Context, onGoToSettings: () -> Unit) {
+        MaterialDialog(context).show {
+            title(R.string.dialog_notification_required)
+            message(R.string.dialog_notification_message)
+            positiveButton(R.string.go_to_settings) { onGoToSettings() }
+            negativeButton(android.R.string.cancel)
+            cancelable(false)
+            cancelOnTouchOutside(false)
+        }
+    }
 }

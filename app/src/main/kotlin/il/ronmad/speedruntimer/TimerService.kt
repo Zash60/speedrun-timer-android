@@ -171,7 +171,7 @@ class TimerService : Service() {
                         stopSelf()
                     }
                     getString(R.string.action_reset_timer) -> {
-                        onResetPressed()
+                        timerReset()
                     }
                 }
             }

@@ -7,17 +7,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ExpandableListView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.google.gson.stream.JsonReader
 import il.ronmad.speedruntimer.activities.MainActivity
 import il.ronmad.speedruntimer.databinding.EditTimeLayoutBinding
-import il.ronmad.speedruntimer.databinding.TimerOverlayBinding
 import il.ronmad.speedruntimer.realm.*
 import il.ronmad.speedruntimer.web.Failure
-import il.ronmad.speedruntimer.web.Result
 import il.ronmad.speedruntimer.web.Success
 import io.realm.Realm
 import kotlinx.coroutines.Dispatchers
@@ -225,21 +222,3 @@ fun ExpandableListView.getExpandedGroupPositions(): List<Int> =
  * Wraps the receiver in a Success if not null, or Failure otherwise
  */
 fun <T> T?.toResult(): Result<T> = this?.let { Success(it) } ?: Failure
-
-val TimerOverlayBinding.chronoViewSet: Set<TextView>
-    get() {
-        return setOf(
-            chronoMinus,
-            chronoHr2,
-            chronoHr1,
-            chronoHrMinColon,
-            chronoMin2,
-            chronoMin1,
-            chronoMinSecColon,
-            chronoSec2,
-            chronoSec1,
-            chronoDot,
-            chronoMilli2,
-            chronoMilli1
-        )
-    }

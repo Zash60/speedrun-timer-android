@@ -1,25 +1,24 @@
 package il.ronmad.speedruntimer
 
+import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.os.SystemClock
 import android.view.View
+import android.widget.TextView
 import il.ronmad.speedruntimer.databinding.TimerOverlayBinding
 import java.lang.ref.WeakReference
 
 /**
- * Custom chronometer with per-digit display, color comparison, and countdown support.
- * Uses a Handler-based tick loop at 15ms intervals for smooth millisecond display.
+ * Modern chronometer using a single TextView with monospace font.
+ * Displays time as "H:MM:SS.ss" with dynamic visibility for hours and sign.
  */
 class Chronometer(
     private val binding: TimerOverlayBinding,
     val config: Config
 ) {
 
-    /**
-     * Configuration container — replaces the old companion object mutable state.
-     */
     data class Config(
         val colorNeutral: Int,
         val colorAhead: Int,
@@ -31,7 +30,6 @@ class Chronometer(
         val alwaysMinutes: Boolean = true,
     )
 
-    // === State ===
     var timeElapsed: Long = 0
         private set
 
@@ -43,20 +41,21 @@ class Chronometer(
     var isStarted: Boolean = false
         private set
 
-    // === Internal ===
     private var base: Long = 0L
     private var currentColor: Int = config.colorNeutral
     private val chronoHandler: Handler
 
+    private val timeView: TextView get() = binding.timerTime
+    private val minusView: TextView get() = binding.timerMinus
+    private val deltaView: TextView get() = binding.timerDelta
+    private val splitView: TextView get() = binding.timerSplit
+
     init {
-        if (!config.showMillis) {
-            binding.apply {
-                chronoMilli1.visibility = View.GONE
-                chronoMilli2.visibility = View.GONE
-                chronoDot.visibility = View.GONE
-            }
+        // Apply monospace typeface
+        arrayOf(timeView, minusView, deltaView, splitView).forEach {
+            it.typeface = Typeface.MONOSPACE
         }
-        binding.chronoViewSet.forEach { it.setTextColor(config.colorNeutral) }
+        timeView.setTextColor(config.colorNeutral)
         chronoHandler = ChronoHandler(this)
         reset()
     }
@@ -76,7 +75,7 @@ class Chronometer(
         }
     }
 
-    fun reset(newPB: Long = 0L) {
+    fun reset() {
         stop()
         isStarted = false
         timeElapsed = -config.countdown
@@ -95,52 +94,36 @@ class Chronometer(
 
     private fun updateTime() {
         val (hours, minutes, seconds, millis) = timeElapsed.getTimeUnits(twoDecimalPlaces = true)
-        binding.apply {
-            chronoHr2.text = (hours / 10).toString()
-            chronoHr1.text = (hours % 10).toString()
-            chronoMin2.text = (minutes / 10).toString()
-            chronoMin1.text = (minutes % 10).toString()
-            chronoSec2.text = (seconds / 10).toString()
-            chronoSec1.text = (seconds % 10).toString()
-            chronoMilli2.text = (millis / 10).toString()
-            chronoMilli1.text = (millis % 10).toString()
+        timeView.text = buildTimeString(hours, minutes, seconds, millis)
+    }
+
+    private fun buildTimeString(hours: Int, minutes: Int, seconds: Int, millis: Int): String {
+        return when {
+            hours > 0 -> "%d:%02d:%02d.%02d".format(hours, minutes, seconds, millis)
+            minutes > 0 || config.alwaysMinutes -> "%d:%02d.%02d".format(minutes, seconds, millis)
+            else -> "%d.%02d".format(seconds, millis)
         }
     }
 
     private fun updateVisibility() {
-        val (hours, minutes, seconds, _) = timeElapsed.getTimeUnits(twoDecimalPlaces = true)
-        binding.apply {
-            chronoMinus.visibility = if (timeElapsed < 0) View.VISIBLE else View.GONE
-            when {
-                hours > 0 -> {
-                    chronoHr2.visibility = if (hours / 10 > 0) View.VISIBLE else View.GONE
-                    chronoHr1.visibility = View.VISIBLE
-                    chronoHrMinColon.visibility = View.VISIBLE
-                    chronoMin2.visibility = View.VISIBLE
-                    chronoMin1.visibility = View.VISIBLE
-                    chronoMinSecColon.visibility = View.VISIBLE
-                    chronoSec2.visibility = View.VISIBLE
-                }
-                minutes > 0 -> {
-                    chronoHr2.visibility = View.GONE
-                    chronoHr1.visibility = View.GONE
-                    chronoHrMinColon.visibility = View.GONE
-                    chronoMin2.visibility = if (minutes / 10 > 0) View.VISIBLE else View.GONE
-                    chronoMin1.visibility = View.VISIBLE
-                    chronoMinSecColon.visibility = View.VISIBLE
-                    chronoSec2.visibility = View.VISIBLE
-                }
-                else -> {
-                    chronoHr2.visibility = View.GONE
-                    chronoHr1.visibility = View.GONE
-                    chronoHrMinColon.visibility = View.GONE
-                    chronoMin2.visibility = View.GONE
-                    chronoMin1.visibility = if (config.alwaysMinutes) View.VISIBLE else View.GONE
-                    chronoMinSecColon.visibility = if (config.alwaysMinutes) View.VISIBLE else View.GONE
-                    chronoSec2.visibility = if (config.alwaysMinutes || seconds / 10 > 0) View.VISIBLE else View.GONE
-                }
-            }
-        }
+        minusView.visibility = if (timeElapsed < 0) View.VISIBLE else View.GONE
+        splitView.visibility = View.GONE // managed externally
+    }
+
+    fun showSplit(show: Boolean) {
+        splitView.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    fun setSplitText(text: String) {
+        splitView.text = text
+    }
+
+    fun showDelta(show: Boolean) {
+        deltaView.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    fun setDeltaText(text: String) {
+        deltaView.text = text
     }
 
     private fun updateColor() {
@@ -155,7 +138,8 @@ class Chronometer(
         get() = currentColor
         set(value) {
             if (value == currentColor) return
-            binding.chronoViewSet.forEach { it.setTextColor(value) }
+            timeView.setTextColor(value)
+            minusView.setTextColor(value)
             currentColor = value
         }
 
@@ -171,9 +155,6 @@ class Chronometer(
         }
     }
 
-    /**
-     * Handler for periodic timer ticks. Uses WeakReference to avoid leaks.
-     */
     private class ChronoHandler(instance: Chronometer) : Handler(Looper.getMainLooper()) {
         private val ref = WeakReference(instance)
 

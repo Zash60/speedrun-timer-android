@@ -5,7 +5,6 @@ import android.annotation.TargetApi
 import android.app.*
 import android.content.*
 import android.graphics.PixelFormat
-import android.graphics.Typeface
 import android.os.Build
 import android.os.IBinder
 import android.util.DisplayMetrics
@@ -260,31 +259,20 @@ class TimerService : Service() {
                 getColorCpt(R.color.colorTimerBackgroundDefault)
             )
         )
-        applyTimerSizes()
-        applyFont()
-        mBinding.currentSplit.setTextColor(chronometer.config.colorNeutral)
+        applyTimerSize()
     }
 
-    private fun applyTimerSizes() {
+    private fun applyTimerSize() {
         val sizesArray = resources.getStringArray(R.array.timer_sizes_values)
         val baseSize = prefs.getString(
             getString(R.string.key_pref_timer_size),
             sizesArray[1]
         )!!.toFloat()
 
-        mBinding.apply {
-            chronoViewSet.forEach { it.textSize = baseSize }
-            chronoDot.textSize = baseSize * 0.75f
-            chronoMilli2.textSize = baseSize * 0.75f
-            chronoMilli1.textSize = baseSize * 0.75f
-            delta.textSize = baseSize * 0.375f
-            currentSplit.textSize = baseSize * 0.5f
-        }
-    }
-
-    private fun applyFont() {
-        val font = Typeface.createFromAsset(assets, "fonts/digital-7.ttf")
-        mBinding.chronoViewSet.forEach { it.typeface = font }
+        mBinding.timerTime.textSize = baseSize
+        mBinding.timerMinus.textSize = baseSize
+        mBinding.timerDelta.textSize = baseSize * 0.44f
+        mBinding.timerSplit.textSize = baseSize * 0.39f
     }
 
     // ========================================================================
@@ -509,9 +497,9 @@ class TimerService : Service() {
         if (hasSplits) {
             splitsIter = category.splits.listIterator()
             timerSplit()
-            mBinding.currentSplit.visibility = if (
+            chronometer.showSplit(
                 prefs.getBoolean(getString(R.string.key_pref_timer_show_current_split), true)
-            ) View.VISIBLE else View.GONE
+            )
         } else {
             chronometer.compareAgainst = category.bestTime
         }
@@ -523,13 +511,13 @@ class TimerService : Service() {
             chronometer.compareAgainst = if (split.hasTime(comparison)) {
                 split.calculateSplitTime(comparison)
             } else 0L
-            mBinding.currentSplit.text = split.name
+            chronometer.setSplitText(split.name)
         }
     }
 
     private fun timerStop() {
         chronometer.stop()
-        mBinding.currentSplit.visibility = View.GONE
+        chronometer.showSplit(false)
     }
 
     private fun timerReset(newPB: Long = 0L, updateData: Boolean = true) {
@@ -551,8 +539,8 @@ class TimerService : Service() {
     private fun clearSplits() {
         segmentTimes.clear()
         splitsIter = null
-        mBinding.delta.visibility = View.GONE
-        mBinding.currentSplit.visibility = View.GONE
+        chronometer.showDelta(false)
+        chronometer.showSplit(false)
     }
 
     private fun getCurrentSplit(): Split? {
@@ -564,15 +552,15 @@ class TimerService : Service() {
         val segmentTime = splitTime - currentSplitStartTime
         val delta = splitTime - currentSplit.calculateSplitTime(comparison)
 
-        mBinding.delta.text = delta.getFormattedTime(plusSign = true)
-        mBinding.delta.setTextColor(
+        chronometer.setDeltaText(delta.getFormattedTime(plusSign = true))
+        chronometer.setDeltaColor(
             when {
                 segmentTime < currentSplit.bestTime -> chronometer.config.colorBestSegment
                 delta < 0 -> chronometer.config.colorAhead
                 else -> chronometer.config.colorBehind
             }
         )
-        mBinding.delta.visibility = if (currentSplit.hasTime(comparison)) View.VISIBLE else View.GONE
+        chronometer.showDelta(currentSplit.hasTime(comparison))
     }
 
     // ========================================================================

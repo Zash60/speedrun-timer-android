@@ -65,14 +65,14 @@ private class Migration : RealmMigration {
     override fun migrate(realm: DynamicRealm, oldVersion: Long, newVersion: Long) {
         var version = oldVersion.toInt()
 
-        fun migrate(block: RealmSchema.() -> Unit) {
+        fun step(block: RealmSchema.() -> Unit) {
             block()
             version++
         }
 
         realm.schema.apply {
             if (version == 0) {
-                migrate {
+                step {
                     val splitSchema = create(Split::class.java.simpleName)
                         .addField("name", String::class.java, FieldAttribute.REQUIRED)
                         .addField("pbTime", Long::class.java, FieldAttribute.REQUIRED)
@@ -82,14 +82,14 @@ private class Migration : RealmMigration {
                 }
             }
             if (version == 1) {
-                migrate {
+                step {
                     get(Game::class.java.simpleName)?.addIndex("name")
                     get(Category::class.java.simpleName)?.addIndex("name")
                     get(Split::class.java.simpleName)?.addIndex("name")
                 }
             }
             if (version == 2) {
-                migrate {
+                step {
                     get(Game::class.java.simpleName)
                         ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
                         ?.transform { it.setLong("id", ++gamePrimaryKey) }
@@ -109,7 +109,7 @@ private class Migration : RealmMigration {
                 }
             }
             if (version == 3) {
-                migrate {
+                step {
                     get(Category::class.java.simpleName)
                         ?.addField("gameName", String::class.java, FieldAttribute.REQUIRED)
                         ?.transform { obj ->

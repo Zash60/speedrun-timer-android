@@ -89,10 +89,10 @@ class TimerService : Service() {
 
         hasSplits = category.splits.isNotEmpty()
 
+        setupOverlay()
         loadPreferences()
         setupNotificationBroadcastReceiver()
         startForeground(R.integer.notification_id, buildAndShowNotification())
-        setupOverlay()
 
         startedProperly = true
         IS_ACTIVE = true

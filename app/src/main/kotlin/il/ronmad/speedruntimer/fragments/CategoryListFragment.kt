@@ -35,6 +35,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     private var waitingForTimerPermission = false
     private var pendingTimerLaunch = false
+    private var alreadyRequestedNotifications = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +56,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         requestNotificationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
+            alreadyRequestedNotifications = false
             if (granted) {
                 launchTimer()
             } else {
@@ -148,6 +150,11 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     private fun checkPermissionAndStartTimer() {
+        if (TimerService.IS_ACTIVE) {
+            requireContext().showToast(requireContext().getString(R.string.toast_close_active_timer), 1)
+            return
+        }
+
         if (!Settings.canDrawOverlays(requireContext())) {
             waitingForTimerPermission = true
             pendingTimerLaunch = true
@@ -161,20 +168,8 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             return
         }
 
-        // On Android 13+, check notification permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val hasPermission = ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!hasPermission) {
-                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
-            }
-        }
-
-        launchTimer()
+        alreadyRequestedNotifications = false
+        checkNotificationsAndStartTimer()
     }
 
     /**
@@ -182,13 +177,14 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
      * or requests permission if not.
      */
     private fun checkNotificationsAndStartTimer() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !alreadyRequestedNotifications) {
             val hasPermission = ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
 
             if (!hasPermission) {
+                alreadyRequestedNotifications = true
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 return
             }

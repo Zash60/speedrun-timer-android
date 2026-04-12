@@ -13,6 +13,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import il.ronmad.speedruntimer.*
@@ -23,6 +25,7 @@ import il.ronmad.speedruntimer.realm.gameExists
 import il.ronmad.speedruntimer.ui.InstalledAppsViewModel
 import io.realm.Realm
 import io.realm.exceptions.RealmException
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,14 +34,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var realm: Realm
 
-    private var rateSnackbarShown: Boolean = false
-    private var addGamesSnackbarShown: Boolean = false
+    private var rateSnackbarShown = false
+    private var addGamesSnackbarShown = false
 
     private lateinit var viewModel: InstalledAppsViewModel
     private var installedGames: List<String> = emptyList()
-
-
-    // defintetly new and improved, not at all ripped off. and withoutt typos
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,15 +51,17 @@ class MainActivity : AppCompatActivity() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
         setupRealm()
 
-        viewModel = ViewModelProvider(this).get(InstalledAppsViewModel::class.java).also {
-            it.setupDone.observe(this) { done ->
-                done?.handle()?.let {
+        viewModel = ViewModelProvider(this)[InstalledAppsViewModel::class]
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.setupDone.collect {
                     setupInstalledGamesList()
                     setupSnackbars()
                 }
             }
-            it.setupInstalledAppsMap()
         }
+        viewModel.setupInstalledAppsMap()
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -122,7 +124,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRealm() {
-        val savedData = sharedPrefs.getString(getString(R.string.key_games), "")!!
+        val savedData = sharedPrefs.getString(getString(R.string.key_games), "").orEmpty()
         if (savedData.isEmpty()) {
             realm = Realm.getDefaultInstance()
         } else {
@@ -137,7 +139,6 @@ class MainActivity : AppCompatActivity() {
                     realm.createAllFromJson(Game::class.java, Util.migrateJson(savedData))
                 }
             }
-
             sharedPrefs.edit()
                 .remove(getString(R.string.key_games))
                 .apply()
@@ -152,7 +153,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Uses realm
     private fun setupSnackbars() {
         var toShowRateSnackbar = false
         rateSnackbarShown = sharedPrefs.getBoolean(getString(R.string.key_rate_snackbar_shown), false)
@@ -163,15 +163,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         addGamesSnackbarShown = sharedPrefs.getBoolean(getString(R.string.key_add_games_snackbar_shown), false)
-        val toShowAddGamesSnackbar = !(getAvailableInstalledGames().isEmpty() || addGamesSnackbarShown)
+        val toShowAddGamesSnackbar = getAvailableInstalledGames().isNotEmpty() && !addGamesSnackbarShown
 
         if (toShowAddGamesSnackbar) {
-            Handler(Looper.myLooper() ?: Looper.getMainLooper())
-                .postDelayed(::showAddInstalledGamesSnackbar, 1000)
+            Handler(Looper.getMainLooper()).postDelayed(::showAddInstalledGamesSnackbar, 1000)
             addGamesSnackbarShown = true
         } else if (toShowRateSnackbar) {
-            Handler(Looper.myLooper() ?: Looper.getMainLooper())
-                .postDelayed(::showRateSnackbar, 1000)
+            Handler(Looper.getMainLooper()).postDelayed(::showRateSnackbar, 1000)
             rateSnackbarShown = true
         }
     }
@@ -185,12 +183,13 @@ class MainActivity : AppCompatActivity() {
             val marketIntent = Intent(
                 Intent.ACTION_VIEW,
                 Uri.parse("market://details?id=$packageName")
-            )
-            marketIntent.addFlags(
-                Intent.FLAG_ACTIVITY_NO_HISTORY
-                        or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-                        or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-            )
+            ).apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NO_HISTORY or
+                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                )
+            }
             try {
                 startActivity(marketIntent)
             } catch (e: ActivityNotFoundException) {
@@ -211,10 +210,8 @@ class MainActivity : AppCompatActivity() {
         snackbar.show()
     }
 
-    // Uses realm
     private fun getAvailableInstalledGames() = installedGames.filter { !realm.gameExists(it) }
 
-    // Uses realm
     private fun addInstalledGames() {
         val gameNames = getAvailableInstalledGames()
         if (gameNames.isEmpty()) {
@@ -229,7 +226,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-
         private var launchCounter = 0
     }
 }

@@ -8,63 +8,82 @@ import android.view.View
 import il.ronmad.speedruntimer.databinding.TimerOverlayBinding
 import java.lang.ref.WeakReference
 
-class Chronometer(private val binding: TimerOverlayBinding) {
+/**
+ * Custom chronometer with per-digit display, color comparison, and countdown support.
+ * Uses a Handler-based tick loop at 15ms intervals for smooth millisecond display.
+ */
+class Chronometer(
+    private val binding: TimerOverlayBinding,
+    val config: Config
+) {
 
-    private var base = 0L
+    /**
+     * Configuration container — replaces the old companion object mutable state.
+     */
+    data class Config(
+        val colorNeutral: Int,
+        val colorAhead: Int,
+        val colorBehind: Int,
+        val colorPB: Int,
+        val colorBestSegment: Int,
+        val countdown: Long = 0L,
+        val showMillis: Boolean = true,
+        val alwaysMinutes: Boolean = true,
+    )
 
-    internal var timeElapsed: Long = 0
+    // === State ===
+    var timeElapsed: Long = 0
         private set
 
-    private var timerColor = colorNeutral
-        set(value) {
-            if (value == field) return
-            binding.chronoViewSet.forEach { it.setTextColor(value) }
-            field = value
-        }
+    var compareAgainst: Long = 0L
 
-    internal var compareAgainst = 0L
+    var isRunning: Boolean = false
+        private set
+
+    var isStarted: Boolean = false
+        private set
+
+    // === Internal ===
+    private var base: Long = 0L
+    private var currentColor: Int = config.colorNeutral
     private val chronoHandler: Handler
 
     init {
-        if (!showMillis) {
+        if (!config.showMillis) {
             binding.apply {
                 chronoMilli1.visibility = View.GONE
                 chronoMilli2.visibility = View.GONE
                 chronoDot.visibility = View.GONE
             }
         }
-        binding.chronoViewSet.forEach { it.setTextColor(colorNeutral) }
+        binding.chronoViewSet.forEach { it.setTextColor(config.colorNeutral) }
         chronoHandler = ChronoHandler(this)
-        init()
+        reset()
     }
 
-    private fun init() {
-        started = false
-        timeElapsed = -countdown
-        compareAgainst = 0L
-        updateTime()
-        updateVisibility()
-        timerColor = colorNeutral
-    }
-
-    internal fun start() {
-        started = true
-        running = true
+    fun start() {
+        isStarted = true
+        isRunning = true
         base = SystemClock.elapsedRealtime() - timeElapsed
         updateRunning()
     }
 
-    internal fun stop() {
-        running = false
+    fun stop() {
+        isRunning = false
         updateRunning()
         if (timeElapsed > 0 && (compareAgainst == 0L || timeElapsed < compareAgainst)) {
-            timerColor = colorPB
+            timerColor = config.colorPB
         }
     }
 
-    internal fun reset() {
+    fun reset(newPB: Long = 0L) {
         stop()
-        init()
+        isStarted = false
+        timeElapsed = -config.countdown
+        compareAgainst = 0L
+        updateTime()
+        updateVisibility()
+        timerColor = config.colorNeutral
     }
 
     private fun update() {
@@ -75,7 +94,7 @@ class Chronometer(private val binding: TimerOverlayBinding) {
     }
 
     private fun updateTime() {
-        val (hours, minutes, seconds, millis) = timeElapsed.getTimeUnits(true)
+        val (hours, minutes, seconds, millis) = timeElapsed.getTimeUnits(twoDecimalPlaces = true)
         binding.apply {
             chronoHr2.text = (hours / 10).toString()
             chronoHr1.text = (hours % 10).toString()
@@ -89,7 +108,7 @@ class Chronometer(private val binding: TimerOverlayBinding) {
     }
 
     private fun updateVisibility() {
-        val (hours, minutes, seconds, _) = timeElapsed.getTimeUnits(true)
+        val (hours, minutes, seconds, _) = timeElapsed.getTimeUnits(twoDecimalPlaces = true)
         binding.apply {
             chronoMinus.visibility = if (timeElapsed < 0) View.VISIBLE else View.GONE
             when {
@@ -116,9 +135,9 @@ class Chronometer(private val binding: TimerOverlayBinding) {
                     chronoHr1.visibility = View.GONE
                     chronoHrMinColon.visibility = View.GONE
                     chronoMin2.visibility = View.GONE
-                    chronoMin1.visibility = if (alwaysMinutes) View.VISIBLE else View.GONE
-                    chronoMinSecColon.visibility = if (alwaysMinutes) View.VISIBLE else View.GONE
-                    chronoSec2.visibility = if (alwaysMinutes || seconds / 10 > 0) View.VISIBLE else View.GONE
+                    chronoMin1.visibility = if (config.alwaysMinutes) View.VISIBLE else View.GONE
+                    chronoMinSecColon.visibility = if (config.alwaysMinutes) View.VISIBLE else View.GONE
+                    chronoSec2.visibility = if (config.alwaysMinutes || seconds / 10 > 0) View.VISIBLE else View.GONE
                 }
             }
         }
@@ -126,48 +145,49 @@ class Chronometer(private val binding: TimerOverlayBinding) {
 
     private fun updateColor() {
         if (compareAgainst == 0L || timeElapsed < 0) {
-            timerColor = colorNeutral
+            timerColor = config.colorNeutral
             return
         }
-        timerColor = if (timeElapsed < compareAgainst) colorAhead else colorBehind
+        timerColor = if (timeElapsed < compareAgainst) config.colorAhead else config.colorBehind
     }
 
+    private var timerColor: Int
+        get() = currentColor
+        set(value) {
+            if (value == currentColor) return
+            binding.chronoViewSet.forEach { it.setTextColor(value) }
+            currentColor = value
+        }
+
     private fun updateRunning() {
-        if (running) {
+        if (isRunning) {
             update()
-            chronoHandler.sendMessageDelayed(Message.obtain(chronoHandler, TICK_WHAT), 15)
+            chronoHandler.sendMessageDelayed(
+                Message.obtain(chronoHandler, TICK_WHAT),
+                TICK_INTERVAL_MS
+            )
         } else {
             chronoHandler.removeMessages(TICK_WHAT)
         }
     }
 
-    private class ChronoHandler(instance: Chronometer) :
-        Handler(Looper.myLooper() ?: Looper.getMainLooper()) {
+    /**
+     * Handler for periodic timer ticks. Uses WeakReference to avoid leaks.
+     */
+    private class ChronoHandler(instance: Chronometer) : Handler(Looper.getMainLooper()) {
+        private val ref = WeakReference(instance)
 
-        private val instance: WeakReference<Chronometer> = WeakReference(instance)
-
-        override fun handleMessage(m: Message) {
-            instance.get()?.let { chronometer ->
-                if (running) {
-                    chronometer.update()
-                    sendMessageDelayed(Message.obtain(this, TICK_WHAT), 15)
-                }
+        override fun handleMessage(msg: Message) {
+            val chronometer = ref.get() ?: return
+            if (chronometer.isRunning) {
+                chronometer.update()
+                sendMessageDelayed(Message.obtain(this, TICK_WHAT), TICK_INTERVAL_MS)
             }
         }
     }
 
     companion object {
-
-        var colorNeutral = 0
-        var colorAhead = 0
-        var colorBehind = 0
-        var colorPB = 0
-        var colorBestSegment = 0
-        var countdown = 0L
-        var showMillis = false
-        var alwaysMinutes = false
-        var started = false
-        var running = false
-        const val TICK_WHAT = 2
+        private const val TICK_WHAT = 2
+        private const val TICK_INTERVAL_MS = 15L
     }
 }

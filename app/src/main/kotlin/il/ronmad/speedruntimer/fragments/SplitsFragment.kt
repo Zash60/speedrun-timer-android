@@ -54,8 +54,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                @Suppress("DEPRECATION")
-                activity.onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
                 true
             }
             R.id.menu_clear_splits -> {

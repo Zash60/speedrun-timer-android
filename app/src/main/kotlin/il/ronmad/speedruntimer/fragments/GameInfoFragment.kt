@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import il.ronmad.speedruntimer.ARG_GAME_NAME
 import il.ronmad.speedruntimer.adapters.InfoListAdapter
 import il.ronmad.speedruntimer.databinding.FragmentGameInfoBinding
@@ -12,10 +14,9 @@ import il.ronmad.speedruntimer.realm.Game
 import il.ronmad.speedruntimer.realm.getGameByName
 import il.ronmad.speedruntimer.showToast
 import il.ronmad.speedruntimer.ui.GameInfoViewModel
-import il.ronmad.speedruntimer.ui.ToastFetchEmpty
-import il.ronmad.speedruntimer.ui.ToastFetchError
 import io.realm.Realm
 import io.realm.RealmChangeListener
+import kotlinx.coroutines.launch
 
 class GameInfoFragment : BaseFragment<FragmentGameInfoBinding>(FragmentGameInfoBinding::inflate) {
 
@@ -36,32 +37,31 @@ class GameInfoFragment : BaseFragment<FragmentGameInfoBinding>(FragmentGameInfoB
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val expandedGroups = savedInstanceState?.let {
-            it.getIntArray(KEY_LIST_EXPANDED_GROUPS)?.toList()
-        }.orEmpty()
+        val expandedGroups = savedInstanceState?.getIntArray(KEY_LIST_EXPANDED_GROUPS)?.toList()
+            .orEmpty()
 
         setupListView(expandedGroups)
 
-        viewModel = ViewModelProvider(this).get(GameInfoViewModel::class.java).apply {
-            refreshSpinner.observe(viewLifecycleOwner) { refreshing ->
-                refreshing?.let {
-                    viewBinding.swipeRefreshLayout.isRefreshing = it
+        viewModel = ViewModelProvider(this)[GameInfoViewModel::class]
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.isRefreshing.collect { refreshing ->
+                        viewBinding.swipeRefreshLayout.isRefreshing = refreshing
+                    }
                 }
-            }
-            leaderboards.observe(viewLifecycleOwner) { leaderboards ->
-                leaderboards?.let {
-                    mAdapter?.data = it
-                    isDataShowing = it.isNotEmpty()
+                launch {
+                    viewModel.leaderboards.collect { leaderboards ->
+                        leaderboards?.let {
+                            mAdapter?.data = it
+                            isDataShowing = it.isNotEmpty()
+                        }
+                    }
                 }
-            }
-            toast.observe(viewLifecycleOwner) { toast ->
-                toast?.handle()?.let {
-                    context?.showToast(it.message)
-                    when (it) {
-                        is ToastFetchEmpty, is ToastFetchError ->
-                            (parentFragment as? GameFragment)?.viewBinding?.viewPager?.apply {
-                                currentItem = GameFragment.TAB_CATEGORIES
-                            }
+                launch {
+                    viewModel.toastMessage.collect { message ->
+                        context?.showToast(message)
                     }
                 }
             }
@@ -100,7 +100,6 @@ class GameInfoFragment : BaseFragment<FragmentGameInfoBinding>(FragmentGameInfoB
     }
 
     companion object {
-
         fun newInstance(gameName: String) = GameInfoFragment().apply {
             arguments = Bundle().also { it.putString(ARG_GAME_NAME, gameName) }
         }

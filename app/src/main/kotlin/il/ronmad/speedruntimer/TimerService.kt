@@ -118,7 +118,7 @@ class TimerService : Service() {
     // ========================================================================
 
     fun closeTimer(fromOnResume: Boolean) {
-        if (Chronometer.started) {
+        if (chronometer.isStarted) {
             Dialogs.showTimerActiveDialog(this, fromOnResume) { stopSelf() }
         } else {
             stopSelf()
@@ -142,19 +142,17 @@ class TimerService : Service() {
 
     private fun loadPreferences() {
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        Chronometer.apply {
-            colorNeutral = getPrefColor(R.string.key_pref_color_neutral, R.color.colorTimerNeutralDefault)
-            colorAhead = getPrefColor(R.string.key_pref_color_ahead, R.color.colorTimerAheadDefault)
-            colorBehind = getPrefColor(R.string.key_pref_color_behind, R.color.colorTimerBehindDefault)
-            colorPB = getPrefColor(R.string.key_pref_color_pb, R.color.colorTimerPBDefault)
-            colorBestSegment = getPrefColor(
-                R.string.key_pref_color_best_segment,
-                R.color.colorTimerBestSegmentDefault
-            )
-            countdown = prefs.getLong(getString(R.string.key_pref_timer_countdown), 0L)
-            showMillis = prefs.getBoolean(getString(R.string.key_pref_timer_show_millis), true)
-            alwaysMinutes = prefs.getBoolean(getString(R.string.key_pref_timer_always_minutes), true)
-        }
+        val chronometerConfig = Chronometer.Config(
+            colorNeutral = getPrefColor(R.string.key_pref_color_neutral, R.color.colorTimerNeutralDefault),
+            colorAhead = getPrefColor(R.string.key_pref_color_ahead, R.color.colorTimerAheadDefault),
+            colorBehind = getPrefColor(R.string.key_pref_color_behind, R.color.colorTimerBehindDefault),
+            colorPB = getPrefColor(R.string.key_pref_color_pb, R.color.colorTimerPBDefault),
+            colorBestSegment = getPrefColor(R.string.key_pref_color_best_segment, R.color.colorTimerBestSegmentDefault),
+            countdown = prefs.getLong(getString(R.string.key_pref_timer_countdown), 0L),
+            showMillis = prefs.getBoolean(getString(R.string.key_pref_timer_show_millis), true),
+            alwaysMinutes = prefs.getBoolean(getString(R.string.key_pref_timer_always_minutes), true),
+        )
+        chronometer = Chronometer(mBinding, chronometerConfig)
         comparison = getComparison()
     }
 
@@ -251,7 +249,6 @@ class TimerService : Service() {
         mBinding = TimerOverlayBinding.inflate(LayoutInflater.from(this))
 
         applyDisplayPreferences()
-        chronometer = Chronometer(mBinding)
         setupTouchHandling()
         addOverlayToWindow()
     }
@@ -265,7 +262,7 @@ class TimerService : Service() {
         )
         applyTimerSizes()
         applyFont()
-        mBinding.currentSplit.setTextColor(Chronometer.colorNeutral)
+        mBinding.currentSplit.setTextColor(chronometer.config.colorNeutral)
     }
 
     private fun applyTimerSizes() {
@@ -329,7 +326,6 @@ class TimerService : Service() {
                         }
                         if (moved || System.currentTimeMillis() - touchTime >= 250) return false
 
-                        // Debounce double taps
                         val now = System.currentTimeMillis()
                         if (now - prevTapTime < 400) return false
                         prevTapTime = now
@@ -350,8 +346,7 @@ class TimerService : Service() {
     private fun onTap(view: View) {
         val splitTime = chronometer.timeElapsed
 
-        // Timer is running: split or stop
-        if (Chronometer.running) {
+        if (chronometer.isRunning) {
             if (splitTime < 0) return
             if (!hasSplits) {
                 timerStop()
@@ -367,7 +362,6 @@ class TimerService : Service() {
                 timerStop()
             }
         } else {
-            // Timer not running: start
             if (splitsIter == null) {
                 timerStart()
             }
@@ -389,7 +383,6 @@ class TimerService : Service() {
         val targetX = (initialX - dx.toInt()).coerceIn(0, screenW - view.width)
         val targetY = (initialY - dy.toInt()).coerceIn(0, screenH - view.height)
 
-        // Threshold to consider it a drag (30px diagonal)
         val distSq = (targetX - initialX).toDouble().let { it * it } +
                 (targetY - initialY).toDouble().let { it * it }
         if (!moved && distSq < 30 * 30) return
@@ -406,8 +399,7 @@ class TimerService : Service() {
         val time = chronometer.timeElapsed
         val saveData = prefs.getBoolean(getString(R.string.key_pref_save_time_data), true)
 
-        val action = decideResetAction(time, saveData)
-        when (action) {
+        when (decideResetAction(time, saveData)) {
             ResetAction.RESET_NO_SAVE -> timerReset(updateData = false)
             ResetAction.RESET_WITH_SAVE -> timerReset(updateData = saveData)
             ResetAction.RESET_WITH_NEW_PB -> timerReset(newPB = time, updateData = saveData)
@@ -423,7 +415,7 @@ class TimerService : Service() {
     private fun decideResetAction(time: Long, saveData: Boolean): ResetAction {
         return when {
             time <= 0 -> ResetAction.RESET_NO_SAVE
-            Chronometer.running || (category.bestTime > 0 && time >= category.bestTime) ->
+            chronometer.isRunning || (category.bestTime > 0 && time >= category.bestTime) ->
                 ResetAction.RESET_WITH_SAVE
             category.bestTime == 0L -> ResetAction.RESET_WITH_NEW_PB
             !saveData -> ResetAction.RESET_NO_SAVE
@@ -516,7 +508,7 @@ class TimerService : Service() {
     private fun timerStart() {
         if (hasSplits) {
             splitsIter = category.splits.listIterator()
-            advanceToFirstSplit()
+            timerSplit()
             mBinding.currentSplit.visibility = if (
                 prefs.getBoolean(getString(R.string.key_pref_timer_show_current_split), true)
             ) View.VISIBLE else View.GONE
@@ -524,10 +516,6 @@ class TimerService : Service() {
             chronometer.compareAgainst = category.bestTime
         }
         chronometer.start()
-    }
-
-    private fun advanceToFirstSplit() {
-        timerSplit()
     }
 
     private fun timerSplit() {
@@ -579,9 +567,9 @@ class TimerService : Service() {
         mBinding.delta.text = delta.getFormattedTime(plusSign = true)
         mBinding.delta.setTextColor(
             when {
-                segmentTime < currentSplit.bestTime -> Chronometer.colorBestSegment
-                delta < 0 -> Chronometer.colorAhead
-                else -> Chronometer.colorBehind
+                segmentTime < currentSplit.bestTime -> chronometer.config.colorBestSegment
+                delta < 0 -> chronometer.config.colorAhead
+                else -> chronometer.config.colorBehind
             }
         )
         mBinding.delta.visibility = if (currentSplit.hasTime(comparison)) View.VISIBLE else View.GONE

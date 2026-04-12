@@ -1,19 +1,14 @@
 package il.ronmad.speedruntimer.ui.util
 
-class Event<out T>(private val data: T) {
+/**
+ * One-shot event wrapper. [consume] can only be called once,
+ * preventing multiple observers from handling the same event.
+ */
+class OneShotEvent<out T>(private val data: T) {
 
-    private var wasHandled = false
+    private var consumed = false
 
-    fun handle(): T? {
-        return if (wasHandled) null
-        else {
-            wasHandled = true
-            data
-        }
-    }
+    fun consume(): T? = if (consumed) null else data.also { consumed = true }
 
-    // TODO: unused
-    fun release() {
-        wasHandled = false
-    }
+    fun peek(): T = data
 }

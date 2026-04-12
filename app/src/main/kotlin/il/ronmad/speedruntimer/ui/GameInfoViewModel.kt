@@ -1,59 +1,53 @@
 package il.ronmad.speedruntimer.ui
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import androidx.lifecycle.ViewModel
-import il.ronmad.speedruntimer.ui.util.Event
-import il.ronmad.speedruntimer.web.Failure
+import androidx.lifecycle.viewModelScope
 import il.ronmad.speedruntimer.web.Src
 import il.ronmad.speedruntimer.web.SrcLeaderboard
 import il.ronmad.speedruntimer.web.Success
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class GameInfoViewModel : ViewModel(), CoroutineScope by MainScope() {
+class GameInfoViewModel : ViewModel() {
 
-    private val _leaderboards = MutableLiveData<List<SrcLeaderboard>?>(null)
-    val leaderboards: LiveData<List<SrcLeaderboard>?>
-        get() = _leaderboards
+    private val _leaderboards = MutableStateFlow<List<SrcLeaderboard>?>(null)
+    val leaderboards: StateFlow<List<SrcLeaderboard>?> = _leaderboards.asStateFlow()
 
-    private val _refreshSpinner = MutableLiveData<Boolean?>(null)
-    val refreshSpinner: LiveData<Boolean?>
-        get() = _refreshSpinner
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    private val _toast = MutableLiveData<GameInfoToast>()
-    val toast: LiveData<Event<GameInfoToast>> = _toast.map { Event(it) }
+    private val _toastMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val toastMessage: SharedFlow<String> = _toastMessage.asSharedFlow()
 
-    fun refreshInfo(gameName: String) = launch {
-        try {
-            _refreshSpinner.value = true
-            val result = withContext(Dispatchers.IO) {
-                Src().fetchLeaderboardsForGame(gameName)
-            }
-            when (result) {
-                is Success -> {
-                    _leaderboards.postValue(result.value)
-                    if (result.value.isEmpty()) {
-                        _toast.value = ToastFetchEmpty
-                    }
+    fun refreshInfo(gameName: String) {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                val result = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    Src().fetchLeaderboardsForGame(gameName)
                 }
-                is Failure -> _toast.value = ToastFetchEmpty
+                when (result) {
+                    is Success -> {
+                        _leaderboards.value = result.value
+                        if (result.value.isEmpty()) {
+                            emitToast("No info available for this game")
+                        }
+                    }
+                    else -> emitToast("No info available for this game")
+                }
+            } catch (_: IOException) {
+                delay(1000)
+                emitToast("Connection error")
+            } finally {
+                _isRefreshing.value = false
             }
-        } catch (e: IOException) {
-            delay(1000)
-            _toast.value = ToastFetchError
-        } finally {
-            _refreshSpinner.value = false
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        cancel()
+    private suspend fun emitToast(message: String) {
+        _toastMessage.emit(message)
     }
 }
-
-sealed class GameInfoToast(val message: String)
-object ToastFetchEmpty : GameInfoToast("No info available for this game")
-object ToastFetchError : GameInfoToast("Connection error")

@@ -1,5 +1,8 @@
 package il.ronmad.speedruntimer.web
 
-sealed class Result<out T>
-class Success<out T>(val value: T) : Result<T>()
-class Failure<T> : Result<T>()
+/**
+ * Result wrapper for operations that can succeed or fail.
+ */
+sealed interface Result<out T>
+data class Success<out T>(val value: T) : Result<T>
+data object Failure : Result<Nothing>

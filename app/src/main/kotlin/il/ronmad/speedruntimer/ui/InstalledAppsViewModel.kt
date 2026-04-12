@@ -2,34 +2,27 @@ package il.ronmad.speedruntimer.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import il.ronmad.speedruntimer.MyApplication
-import il.ronmad.speedruntimer.ui.util.Event
-import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 /**
- * Getting the list of apps that are installed on the system takes time (PackageManager is slow),
- * so it must be done in a background thread to get a fast app startup time.
- * This ViewModel is for MainActivity. It both abstracts coroutines away from the activity,
- * and allows the activity to process the result of the calculation in the main thread
- * (necessary because it involves work with Realm).
- * The installed apps data is in MyApplication so that it can be accessible from any timer launch
- *  - from the app, from the Widget, etc.
+ * Gets the list of installed apps in a background thread.
+ * PackageManager is slow, so this must be done off the main thread
+ * for fast app startup.
  */
-class InstalledAppsViewModel(application: Application) : AndroidViewModel(application), CoroutineScope by MainScope() {
+class InstalledAppsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _setupDone = MutableLiveData<Boolean>()
-    val setupDone: LiveData<Event<Boolean>> = _setupDone.map { Event(it) }
+    private val _setupDone = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val setupDone: SharedFlow<Unit> = _setupDone.asSharedFlow()
 
-    fun setupInstalledAppsMap() = launch {
-        getApplication<MyApplication>().setupInstalledAppsMap()
-        _setupDone.postValue(true)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cancel()
+    fun setupInstalledAppsMap() {
+        viewModelScope.launch {
+            getApplication<MyApplication>().setupInstalledAppsMap()
+            _setupDone.emit(Unit)
+        }
     }
 }

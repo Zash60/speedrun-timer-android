@@ -11,26 +11,31 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import il.ronmad.speedruntimer.activities.MainActivity
 import io.realm.Realm
 
-abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> T) : Fragment() {
+/**
+ * Base fragment with ViewBinding and Realm lifecycle management.
+ * Each fragment gets its own Realm instance.
+ */
+abstract class BaseFragment<T : ViewBinding>(
+    private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> T
+) : Fragment() {
 
-    protected var _viewBinding: T? = null
-    internal val viewBinding get() = _viewBinding!!
+    private var _viewBinding: T? = null
+    protected val viewBinding: T get() = _viewBinding!!
 
     protected lateinit var realm: Realm
 
-    protected val activity: MainActivity
-        get() = getActivity() as MainActivity
+    protected val mainActivity: MainActivity
+        get() = requireActivity() as MainActivity
 
-    protected val mActionBar: ActionBar?
-        get() = activity.supportActionBar
+    protected val actionBar: ActionBar?
+        get() = mainActivity.supportActionBar
 
     protected val fabAdd: FloatingActionButton
-        get() = activity.viewBinding.fabAdd
+        get() = mainActivity.viewBinding.fabAdd
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         realm = Realm.getDefaultInstance()
-        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -45,7 +50,9 @@ abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (Layou
 
     override fun onDestroy() {
         super.onDestroy()
-        realm.close()
+        if (::realm.isInitialized) {
+            realm.close()
+        }
     }
 
     abstract fun onFabAddPressed()

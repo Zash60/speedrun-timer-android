@@ -2,14 +2,10 @@ package il.ronmad.speedruntimer.fragments
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.view.ActionMode
 import android.view.View
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -19,6 +15,7 @@ import il.ronmad.speedruntimer.*
 import il.ronmad.speedruntimer.adapters.CategoryAdapter
 import il.ronmad.speedruntimer.databinding.FragmentCategoryListBinding
 import il.ronmad.speedruntimer.realm.*
+import kotlinx.coroutines.*
 
 class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentCategoryListBinding::inflate) {
 
@@ -26,20 +23,28 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     private var selectedCategory: Category? = null
     private var mAdapter: CategoryAdapter? = null
     var mActionMode: ActionMode? = null
+        private set
     private var mActionModeCallback: MyActionModeCallback? = null
-    private lateinit var getOverlayPermissionAndLaunchTimer: ActivityResultLauncher<Intent>
+    private lateinit var getOverlayPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+
+    private var waitingForTimerPermission = false
+    private var pendingTimerLaunch = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
 
-        getOverlayPermissionAndLaunchTimer =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                if (Settings.canDrawOverlays(context)) {
-                    launchTimer()
-                }
+        getOverlayPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            if (Settings.canDrawOverlays(requireContext())) {
+                launchTimer()
+            } else {
+                // Retry with delays — the permission UI may still be processing
+                retryPermissionWithBackoff()
             }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,45 +59,37 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     override fun onResume() {
         super.onResume()
         mAdapter?.onItemsEdited()
-        if (waitingForTimerPermission) {
-            if (!TimerService.IS_ACTIVE) {
-                if (Settings.canDrawOverlays(context)) {
-                    launchTimer()
-                } else {
-                    checkPermissionAndStartTimerDelayed()
-                }
+        if (waitingForTimerPermission && !TimerService.IS_ACTIVE) {
+            if (Settings.canDrawOverlays(context)) {
+                launchTimer()
             }
         }
     }
 
     private fun launchTimer() {
         waitingForTimerPermission = false
-        try {
-            checkNotNull(selectedCategory)
-            TimerService.launchTimer(context, game.name, selectedCategory!!.name)
-        } catch (e: IllegalStateException) { /* selectedCategory was null */
-        }
+        pendingTimerLaunch = false
+        val selected = selectedCategory ?: return
+        TimerService.launchTimer(context, game.name, selected.name)
     }
 
     private fun checkEmptyList() {
-        viewBinding.emptyList.visibility = if (game.categories.size == 0) View.VISIBLE else View.GONE
+        viewBinding.emptyList.visibility = if (game.categories.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun setupActionMode() {
         mActionModeCallback = MyActionModeCallback(mAdapter!!).apply {
             onEditPressed = {
                 mAdapter?.selectedItems?.singleOrNull()?.let { id ->
-                    game.getCategoryById(id)?.let {
-                        Dialogs.showEditCategoryDialog(activity, it) { name, pbTime, runCount ->
-                            actionEditCategory(it, name, pbTime, runCount)
+                    game.getCategoryById(id)?.let { category ->
+                        Dialogs.showEditCategoryDialog(activity, category) { name, pbTime, runCount ->
+                            actionEditCategory(category, name, pbTime, runCount)
                         }
                     }
                 }
             }
             onDeletePressed = {
-                mAdapter?.let {
-                    actionRemoveCategories(it.selectedItems)
-                }
+                mAdapter?.let { actionRemoveCategories(it.selectedItems) }
             }
             onDestroy = { mActionMode = null }
         }
@@ -100,12 +97,12 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     private fun setupRecyclerView() {
         mAdapter = CategoryAdapter(activity, game.categories).apply {
-            onItemClickListener = { holder, position ->
+            onItemClickListener = { holder, _ ->
                 if (mActionMode == null) {
                     selectedCategory = holder.item
                     showBottomSheetDialog()
                 } else {
-                    mAdapter?.toggleItemSelected(position)
+                    mAdapter?.toggleItemSelected(holder.adapterPosition)
                     mActionMode?.invalidate()
                 }
             }
@@ -126,50 +123,44 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     override fun onFabAddPressed() {
-        Dialogs.showNewCategoryDialog(activity, game) {
-            addCategory(it)
-        }
+        Dialogs.showNewCategoryDialog(activity, game) { addCategory(it) }
     }
 
     private fun checkPermissionAndStartTimer() {
-        context?.let {
-            if (!Settings.canDrawOverlays(it)) {
-                waitingForTimerPermission = true
-                it.showToast(it.getString(R.string.toast_allow_permission), 1)
-                getOverlayPermissionAndLaunchTimer.launch(
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${activity.packageName}")
-                    )
+        val ctx = context ?: return
+        if (!Settings.canDrawOverlays(ctx)) {
+            waitingForTimerPermission = true
+            pendingTimerLaunch = true
+            ctx.showToast(ctx.getString(R.string.toast_allow_permission), 1)
+            getOverlayPermissionLauncher.launch(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${activity.packageName}")
                 )
-            } else {
-                launchTimer()
-            }
+            )
+        } else {
+            launchTimer()
         }
     }
 
     /**
-     * All of this is because the permission may take time to register.
+     * Retries permission check with exponential backoff.
+     * The system may take time to register the overlay permission after the settings screen closes.
      */
-    private fun checkPermissionAndStartTimerDelayed() {
-        val handler = Handler(Looper.myLooper() ?: Looper.getMainLooper())
-        handler.postDelayed({
-            if (Settings.canDrawOverlays(context)) {
-                launchTimer()
-            } else {
-                handler.postDelayed({
-                    if (Settings.canDrawOverlays(context)) {
-                        launchTimer()
-                    } else {
-                        handler.postDelayed({
-                            if (Settings.canDrawOverlays(context)) {
-                                launchTimer()
-                            }
-                        }, 500)
-                    }
-                }, 500)
+    private fun retryPermissionWithBackoff() {
+        if (!pendingTimerLaunch) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeat(3) { attempt ->
+                delay(500L * (attempt + 1))
+                if (Settings.canDrawOverlays(context)) {
+                    launchTimer()
+                    return@repeat
+                }
             }
-        }, 500)
+            // If all retries fail, reset the pending flag
+            waitingForTimerPermission = false
+            pendingTimerLaunch = false
+        }
     }
 
     private fun addCategory(name: String) {
@@ -194,18 +185,12 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     private fun viewSplits() {
-        try {
-            checkNotNull(selectedCategory)
-            activity.supportFragmentManager.beginTransaction()
-                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out,
-                            R.anim.fade_in, R.anim.fade_out)
-                    .replace(R.id.fragment_container,
-                            SplitsFragment.newInstance(game.name, selectedCategory!!.name),
-                            TAG_SPLITS_LIST_FRAGMENT)
-                    .addToBackStack(null)
-                    .commit()
-        } catch (e: IllegalStateException) { /* selectedCategory was null */
-        }
+        val selected = selectedCategory ?: return
+        activity.supportFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+            .replace(R.id.fragment_container, SplitsFragment.newInstance(game.name, selected.name), TAG_SPLITS_LIST_FRAGMENT)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun showBottomSheetDialog() {
@@ -220,37 +205,34 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         if (toRemove.isEmpty()) return
         game.getCategories(toRemove).singleOrNull()?.let {
             if (it.bestTime > 0) {
-                Dialogs.showDeleteCategoryDialog(activity, it) {
-                    removeCategories(toRemove)
-                }
+                Dialogs.showDeleteCategoryDialog(activity, it) { removeCategories(toRemove) }
             } else {
                 removeCategories(toRemove)
             }
-        } ?: Dialogs.showDeleteCategoriesDialog(activity) {
-            removeCategories(toRemove)
-        }
+        } ?: Dialogs.showDeleteCategoriesDialog(activity) { removeCategories(toRemove) }
     }
 
-    private fun actionEditCategory(category: Category, newName: String, newBestTime: Long, newRunCount: Int) {
+    private fun actionEditCategory(category: Category, newName: String, newBestTime: Long, prevRunCount: Int) {
         val prevName = category.name
         val prevBestTime = category.bestTime
-        val prevRunCount = category.runCount
-        editCategory(category, newName, newBestTime, newRunCount)
+        editCategory(category, newName, newBestTime, prevRunCount)
         showEditedCategorySnackbar(category, prevName, prevBestTime, prevRunCount)
     }
 
     private fun showEditedCategorySnackbar(category: Category, prevName: String, prevBestTime: Long, prevRunCount: Int) {
         val message = "${game.name} $prevName has been edited."
         Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG)
-                .setAction(R.string.undo) {
-                    editCategory(category, prevName, prevBestTime, prevRunCount)
-                }.show()
+            .setAction(R.string.undo) {
+                editCategory(category, prevName, prevBestTime, prevRunCount)
+            }.show()
+    }
+
+    fun refreshList() {
+        mAdapter?.notifyDataSetChanged()
+        checkEmptyList()
     }
 
     companion object {
-
-        private var waitingForTimerPermission = false
-
         fun newInstance(gameName: String) = CategoryListFragment().apply {
             arguments = Bundle().also { it.putString(ARG_GAME_NAME, gameName) }
         }

@@ -241,10 +241,10 @@ class Src private constructor() {
                         }
                     }.toResult()
                 } catch (e: OutOfMemoryError) {
-                    Failure()
+                    Failure
                 }
             }
-            is Failure -> Failure()
+            is Failure -> Failure
         }
     }
 

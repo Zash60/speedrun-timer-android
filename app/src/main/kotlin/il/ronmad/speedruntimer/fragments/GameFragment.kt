@@ -4,13 +4,16 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MenuItem
 import android.view.View
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
-import androidx.viewpager.widget.ViewPager
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.*
+import com.google.android.material.tabs.TabLayoutMediator
 import il.ronmad.speedruntimer.ARG_GAME_NAME
 import il.ronmad.speedruntimer.R
-import il.ronmad.speedruntimer.adapters.SmartFragmentStatePagerAdapter
+import il.ronmad.speedruntimer.adapters.TrackedFragmentStateAdapter
 import il.ronmad.speedruntimer.databinding.FragmentGameBinding
 import il.ronmad.speedruntimer.realm.Game
 import il.ronmad.speedruntimer.realm.getGameByName
@@ -18,7 +21,7 @@ import il.ronmad.speedruntimer.realm.getGameByName
 class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::inflate) {
 
     private lateinit var game: Game
-    private lateinit var viewPagerAdapter: SmartFragmentStatePagerAdapter
+    private lateinit var viewPagerAdapter: GameViewPagerAdapter
 
     private val viewPager get() = viewBinding.viewPager
     private val tabLayout get() = activity.viewBinding.tabLayout
@@ -59,73 +62,52 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                @Suppress("DEPRECATION")
-                activity.onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> false
         }
     }
 
-    override fun onFabAddPressed() { /* Handled in CategoryListFragment */
+    override fun onFabAddPressed() {
+        // Handled in CategoryListFragment
     }
 
     private fun setupViewPager() {
-        viewPagerAdapter = object : SmartFragmentStatePagerAdapter(childFragmentManager) {
-            override fun getItem(position: Int): Fragment {
-                return when (position) {
-                    TAB_CATEGORIES -> CategoryListFragment.newInstance(game.name)
-                    TAB_INFO -> GameInfoFragment.newInstance(game.name)
-                    else -> CategoryListFragment.newInstance(game.name)
-                }
-            }
-
-            override fun getPageTitle(position: Int): CharSequence? =
-                resources.getStringArray(R.array.fragment_game_tabs)[position]
-
-            override fun getCount() = 2
-        }
+        viewPagerAdapter = GameViewPagerAdapter(childFragmentManager, lifecycle, game.name)
         viewPager.adapter = viewPagerAdapter
-        viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrollStateChanged(state: Int) {}
 
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = resources.getStringArray(R.array.fragment_game_tabs)[position]
+        }.attach()
 
+        viewPager.registerOnPageChangeCallback(object : ViewPager2PageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 when (position) {
                     TAB_CATEGORIES -> {
                         fabAdd.show()
-                        view?.setOnKeyListener(null)
+                        ViewCompat.setOnKeyListener(viewBinding.root, null)
                     }
                     TAB_INFO -> {
                         fabAdd.hide()
-                        (viewPagerAdapter.getRegisteredFragment(TAB_INFO) as? GameInfoFragment)
-                            ?.let {
-                                if (!it.isDataShowing) {
-                                    it.refreshData()
-                                }
-                            }
-                        (viewPagerAdapter.getRegisteredFragment(TAB_CATEGORIES) as? CategoryListFragment)
-                            ?.mActionMode?.finish()
-                        view?.setOnKeyListener { _, keyCode, _ ->
-                            when (keyCode) {
-                                KeyEvent.KEYCODE_BACK -> {
-                                    viewPager.currentItem = TAB_CATEGORIES
-                                    true
-                                }
-                                else -> false
-                            }
+                        viewPagerAdapter.getRegisteredFragment(TAB_INFO)
+                            ?.let { it as? GameInfoFragment }
+                            ?.takeIf { !it.isDataShowing }
+                            ?.refreshData()
+
+                        ViewCompat.setOnKeyListener(viewBinding.root) { _, keyCode, _ ->
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                viewPager.currentItem = TAB_CATEGORIES
+                                true
+                            } else false
                         }
                     }
                 }
             }
         })
-
-        tabLayout.setupWithViewPager(viewPager)
     }
 
     companion object {
-
         const val TAB_CATEGORIES = 0
         const val TAB_INFO = 1
 
@@ -134,3 +116,35 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
         }
     }
 }
+
+/**
+ * ViewPager2 adapter for GameFragment tabs.
+ */
+class GameViewPagerAdapter(
+    fragmentManager: FragmentManager,
+    lifecycle: Lifecycle,
+    private val gameName: String
+) : TrackedFragmentStateAdapter(fragmentManager, lifecycle) {
+
+    override fun getItemCount() = 2
+
+    override fun createFragment(position: Int): Fragment {
+        return getItem(position).also { fragment ->
+            // Track the fragment after creation
+        }
+    }
+
+    fun getItem(position: Int): Fragment {
+        return when (position) {
+            GameFragment.TAB_CATEGORIES -> CategoryListFragment.newInstance(gameName)
+            GameFragment.TAB_INFO -> GameInfoFragment.newInstance(gameName)
+            else -> CategoryListFragment.newInstance(gameName)
+        }
+    }
+}
+
+/**
+ * Stand-in typealias until ViewPager2's OnPageChangeCallback is imported.
+ * We define it locally to avoid long imports.
+ */
+typealias ViewPager2PageChangeCallback = androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback

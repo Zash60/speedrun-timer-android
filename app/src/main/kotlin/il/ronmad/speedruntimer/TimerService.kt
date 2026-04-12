@@ -582,6 +582,8 @@ class TimerService : Service() {
         var IS_ACTIVE = false
         var gameName = ""
         var categoryName = ""
+        /** True when user is in the middle of granting overlay/notification permissions */
+        var isInPermissionFlow = false
 
         private val scope = CoroutineScope(Dispatchers.Main)
 

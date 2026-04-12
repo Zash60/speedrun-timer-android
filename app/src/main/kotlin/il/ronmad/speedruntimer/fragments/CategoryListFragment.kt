@@ -37,11 +37,6 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     private var pendingTimerLaunch = false
     private var alreadyRequestedNotifications = false
 
-    companion object {
-        /** True when user is in the middle of granting overlay/notification permissions */
-        @JvmField var isInPermissionFlow = false
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
@@ -53,7 +48,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             if (Settings.canDrawOverlays(requireContext())) {
                 checkNotificationsAndStartTimer()
             } else {
-                isInPermissionFlow = false
+                TimerService.isInPermissionFlow = false
                 waitingForTimerPermission = false
                 pendingTimerLaunch = false
             }
@@ -62,7 +57,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         requestNotificationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
-            isInPermissionFlow = false
+            TimerService.isInPermissionFlow = false
             alreadyRequestedNotifications = false
             if (granted) {
                 launchTimer()
@@ -97,7 +92,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     private fun launchTimer() {
-        isInPermissionFlow = false
+        TimerService.isInPermissionFlow = false
         waitingForTimerPermission = false
         pendingTimerLaunch = false
         val selected = selectedCategory ?: return
@@ -164,7 +159,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         }
 
         if (!Settings.canDrawOverlays(requireContext())) {
-            isInPermissionFlow = true
+            TimerService.isInPermissionFlow = true
             waitingForTimerPermission = true
             pendingTimerLaunch = true
             requireContext().showToast(requireContext().getString(R.string.toast_allow_permission), 1)
@@ -193,7 +188,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             ) == PackageManager.PERMISSION_GRANTED
 
             if (!hasPermission) {
-                isInPermissionFlow = true
+                TimerService.isInPermissionFlow = true
                 alreadyRequestedNotifications = true
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 return

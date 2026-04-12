@@ -4,11 +4,9 @@ import il.ronmad.speedruntimer.web.Failure
 import il.ronmad.speedruntimer.web.Src
 import il.ronmad.speedruntimer.web.Success
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.*
 import org.junit.Ignore
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class SrcTests {
 

@@ -71,6 +71,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {
+            @Suppress("DEPRECATION")
             activity?.onBackPressed()
             return true
         }

@@ -237,6 +237,7 @@ class TimerService : Service() {
                     return false
                 }
 
+                @Suppress("DEPRECATION")
                 mWindowManager.defaultDisplay.getMetrics(metrics)
 
                 when (event.action) {
@@ -325,6 +326,7 @@ class TimerService : Service() {
                             timerReset(time, updateData = isCheckPromptChecked())
                         }
                         negativeButton(android.R.string.cancel)
+                        @Suppress("DEPRECATION")
                         window?.setType(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -377,7 +379,9 @@ class TimerService : Service() {
 
     private fun setupView() {
         val metrics = DisplayMetrics()
+        @Suppress("DEPRECATION")
         mWindowManager.defaultDisplay.getMetrics(metrics)
+        @Suppress("DEPRECATION")
         mWindowParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -398,6 +402,7 @@ class TimerService : Service() {
     private fun resetTimerPosition() {
         val (x, y) = category.getGame().getPosition()
         val metrics = DisplayMetrics()
+        @Suppress("DEPRECATION")
         mWindowManager.defaultDisplay.getMetrics(metrics)
         mWindowParams.x = x.coerceIn(0, metrics.widthPixels - mWindowParams.width)
         mWindowParams.y = y.coerceIn(0, metrics.heightPixels - mWindowParams.height)

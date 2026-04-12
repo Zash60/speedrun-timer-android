@@ -212,6 +212,7 @@ object Dialogs {
                     context.minimizeApp()
                 }
             }
+            @Suppress("DEPRECATION")
             window?.setType(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY

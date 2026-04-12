@@ -82,16 +82,20 @@ class InfoListAdapter(
         val leaderboard = getGroup(groupPosition)
         if (leaderboard.runs.isEmpty()) {
             listItemViewBinding.numOfRunsText.text = context?.getString(R.string.empty_leaderboard)
+            @Suppress("DEPRECATION")
+            val emptyColor = android.R.color.secondary_text_light_nodisable
             context?.let {
-                listItemViewBinding.numOfRunsText.setTextColor(it.getColorCpt(android.R.color.secondary_text_light_nodisable))
+                listItemViewBinding.numOfRunsText.setTextColor(it.getColorCpt(emptyColor))
             }
             listItemViewBinding.numOfRunsText.setTypeface(listItemViewBinding.numOfRunsText.typeface, Typeface.ITALIC)
             listItemViewBinding.wrText.visibility = View.GONE
             listItemViewBinding.placeText.visibility = View.GONE
             listItemViewBinding.buttonWRLink.visibility = View.GONE
         } else {
+            @Suppress("DEPRECATION")
+            val textColor = android.R.color.primary_text_light
             context?.let {
-                listItemViewBinding.numOfRunsText.setTextColor(it.getColorCpt(android.R.color.primary_text_light))
+                listItemViewBinding.numOfRunsText.setTextColor(it.getColorCpt(textColor))
             }
             listItemViewBinding.numOfRunsText.setTypeface(listItemViewBinding.numOfRunsText.typeface, Typeface.NORMAL)
             listItemViewBinding.wrText.visibility = View.VISIBLE

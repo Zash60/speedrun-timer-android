@@ -26,7 +26,10 @@ class CategoryAdapter(val context: Context, categories: List<Category>) :
             viewBinding.pbTime.setTextColor(
                 context.getColorCpt(
                     if (category.bestTime > 0) R.color.colorAccent
-                    else android.R.color.primary_text_light
+                    else {
+                        @Suppress("DEPRECATION")
+                        android.R.color.primary_text_light
+                    }
                 )
             )
             viewBinding.runsNum.text = category.runCount.toString()

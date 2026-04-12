@@ -7,6 +7,9 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializer
 import il.ronmad.speedruntimer.SRC_API
 import il.ronmad.speedruntimer.toResult
+import il.ronmad.speedruntimer.web.Result
+import il.ronmad.speedruntimer.web.Success
+import il.ronmad.speedruntimer.web.Failure
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

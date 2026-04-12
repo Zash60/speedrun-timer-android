@@ -126,6 +126,10 @@ class Chronometer(
         deltaView.text = text
     }
 
+    fun setDeltaColor(color: Int) {
+        deltaView.setTextColor(color)
+    }
+
     private fun updateColor() {
         if (compareAgainst == 0L || timeElapsed < 0) {
             timerColor = config.colorNeutral

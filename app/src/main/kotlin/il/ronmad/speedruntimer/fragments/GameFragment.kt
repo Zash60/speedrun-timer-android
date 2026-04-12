@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MenuItem
 import android.view.View
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -81,12 +80,12 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
             tab.text = resources.getStringArray(R.array.fragment_game_tabs)[position]
         }.attach()
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2PageChangeCallback() {
+        viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 when (position) {
                     TAB_CATEGORIES -> {
                         fabAdd.show()
-                        ViewCompat.setOnKeyListener(viewBinding.root, null)
+                        viewBinding.root.setOnKeyListener(null)
                     }
                     TAB_INFO -> {
                         fabAdd.hide()
@@ -95,7 +94,7 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
                             ?.takeIf { !it.isDataShowing }
                             ?.refreshData()
 
-                        ViewCompat.setOnKeyListener(viewBinding.root) { _, keyCode, _ ->
+                        viewBinding.root.setOnKeyListener { _, keyCode, _ ->
                             if (keyCode == KeyEvent.KEYCODE_BACK) {
                                 viewPager.currentItem = TAB_CATEGORIES
                                 true
@@ -142,9 +141,3 @@ class GameViewPagerAdapter(
         }
     }
 }
-
-/**
- * Stand-in typealias until ViewPager2's OnPageChangeCallback is imported.
- * We define it locally to avoid long imports.
- */
-typealias ViewPager2PageChangeCallback = androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback

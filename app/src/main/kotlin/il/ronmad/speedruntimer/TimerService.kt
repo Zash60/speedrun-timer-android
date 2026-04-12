@@ -159,7 +159,11 @@ class TimerService : Service() {
         }
         val intentFilter = IntentFilter()
         intentFilter.addAction(getString(R.string.action_close_timer))
-        registerReceiver(receiver, intentFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, intentFilter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(receiver, intentFilter)
+        }
     }
 
     private fun setupNotification(): Notification {

@@ -58,6 +58,18 @@ android {
     }
 }
 
+kapt {
+    useBuildCache = true
+    correctErrorTypes = true
+    javacOptions {
+        option("-Xmaxerrs", "500")
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
 dependencies {
     // Core AndroidX
     implementation(libs.androidx.core.ktx)

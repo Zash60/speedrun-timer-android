@@ -5,11 +5,11 @@ apply plugin: 'realm-android'
 
 android {
     namespace 'il.ronmad.speedruntimer'
-    compileSdkVersion 34
+    compileSdkVersion 35
     defaultConfig {
         applicationId "il.ronmad.speedruntimer"
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 56
         versionName '4.26'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

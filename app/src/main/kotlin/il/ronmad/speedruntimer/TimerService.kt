@@ -231,7 +231,6 @@ class TimerService : Service() {
 
         mBinding.root.isLongClickable = true
         mBinding.root.setOnTouchListener(object : View.OnTouchListener {
-            private val metrics = DisplayMetrics()
             private var initialX: Int = 0
             private var initialY: Int = 0
             private var initialTouchX: Float = 0.toFloat()
@@ -245,9 +244,6 @@ class TimerService : Service() {
                 if (System.currentTimeMillis() - startTime <= 300) {
                     return false
                 }
-
-                @Suppress("DEPRECATION")
-                mWindowManager.defaultDisplay.getMetrics(metrics)
 
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -293,10 +289,11 @@ class TimerService : Service() {
                         currentSplitStartTime = splitTime.coerceAtLeast(0L)
                     }
                     MotionEvent.ACTION_MOVE -> {
+                        val (screenWidth, screenHeight) = getScreenSize()
                         val targetX = (initialX - (event.rawX - initialTouchX).toInt())
-                            .coerceIn(0, metrics.widthPixels - v.width)
+                            .coerceIn(0, screenWidth - v.width)
                         val targetY = (initialY - (event.rawY - initialTouchY).toInt())
-                            .coerceIn(0, metrics.heightPixels - v.height)
+                            .coerceIn(0, screenHeight - v.height)
                         if (moved || (targetX - initialX).toDouble().pow(2.0) + (targetY - initialY).toDouble()
                                 .pow(2.0) >= 30 * 30
                         ) {
@@ -387,10 +384,6 @@ class TimerService : Service() {
     }
 
     private fun setupView() {
-        val metrics = DisplayMetrics()
-        @Suppress("DEPRECATION")
-        mWindowManager.defaultDisplay.getMetrics(metrics)
-        @Suppress("DEPRECATION")
         mWindowParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -408,13 +401,32 @@ class TimerService : Service() {
         resetTimerPosition()
     }
 
+    /**
+     * Returns the usable screen dimensions (width, height) for overlay positioning.
+     * Uses WindowMetrics API (API 30+) to avoid deprecated Display APIs that break on Android 15.
+     * Uses maximumWindowMetrics because TYPE_APPLICATION_OVERLAY can be placed anywhere on screen.
+     */
+    private fun getScreenSize(): Pair<Int, Int> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = mWindowManager.maximumWindowMetrics
+            val bounds = windowMetrics.bounds
+            Pair(bounds.width(), bounds.height())
+        } else {
+            val metrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            mWindowManager.defaultDisplay.getMetrics(metrics)
+            Pair(metrics.widthPixels, metrics.heightPixels)
+        }
+    }
+
     private fun resetTimerPosition() {
         val (x, y) = category.getGame().getPosition()
-        val metrics = DisplayMetrics()
-        @Suppress("DEPRECATION")
-        mWindowManager.defaultDisplay.getMetrics(metrics)
-        mWindowParams.x = x.coerceIn(0, metrics.widthPixels - mWindowParams.width)
-        mWindowParams.y = y.coerceIn(0, metrics.heightPixels - mWindowParams.height)
+        val (screenWidth, screenHeight) = getScreenSize()
+        // Use view's measured dimensions if layout hasn't happened yet
+        val viewWidth = mBinding.root.width.takeIf { it > 0 } ?: mBinding.root.measuredWidth
+        val viewHeight = mBinding.root.height.takeIf { it > 0 } ?: mBinding.root.measuredHeight
+        mWindowParams.x = x.coerceIn(0, screenWidth - viewWidth)
+        mWindowParams.y = y.coerceIn(0, screenHeight - viewHeight)
         mWindowManager.updateViewLayout(mBinding.root, mWindowParams)
     }
 

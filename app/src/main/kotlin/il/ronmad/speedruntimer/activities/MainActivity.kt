@@ -19,6 +19,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import il.ronmad.speedruntimer.*
 import il.ronmad.speedruntimer.databinding.ActivityMainBinding
+import il.ronmad.speedruntimer.fragments.CategoryListFragment
 import il.ronmad.speedruntimer.fragments.GamesListFragment
 import il.ronmad.speedruntimer.realm.Game
 import il.ronmad.speedruntimer.realm.gameExists
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (TimerService.IS_ACTIVE) {
+        if (TimerService.IS_ACTIVE && !CategoryListFragment.isInPermissionFlow) {
             Dialogs.showCloseTimerOnResumeDialog(this) {
                 val closeTimerIntent = Intent(getString(R.string.action_close_timer)).also {
                     it.putExtra(getString(R.string.extra_close_timer_from_onresume), true)

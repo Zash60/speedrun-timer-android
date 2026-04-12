@@ -47,7 +47,8 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             if (Settings.canDrawOverlays(requireContext())) {
                 checkNotificationsAndStartTimer()
             } else {
-                retryPermissionWithBackoff()
+                waitingForTimerPermission = false
+                pendingTimerLaunch = false
             }
         }
 
@@ -194,25 +195,6 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         }
 
         launchTimer()
-    }
-
-    /**
-     * Retries permission check with exponential backoff.
-     * The system may take time to register the overlay permission after the settings screen closes.
-     */
-    private fun retryPermissionWithBackoff() {
-        if (!pendingTimerLaunch) return
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeat(3) { attempt ->
-                delay(500L * (attempt + 1))
-                if (Settings.canDrawOverlays(requireContext())) {
-                    checkNotificationsAndStartTimer()
-                    return@repeat
-                }
-            }
-            waitingForTimerPermission = false
-            pendingTimerLaunch = false
-        }
     }
 
     private fun addCategory(name: String) {

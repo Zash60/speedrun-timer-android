@@ -27,6 +27,7 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
 

@@ -18,7 +18,7 @@ interface SrcAPI {
     @GET("games")
     suspend fun game(
             @Query("name") name: String,
-            @Query("embed") embed: String = "categories.variables"
+            @Query("embed") embed: String
     ): Response<SrcGame>
 
     @GET
@@ -205,7 +205,7 @@ class Src private constructor() {
 
     suspend fun fetchGameData(gameName: String): Result<SrcGame> {
         return gameCache.getOrElse(gameName) {
-            api.game(gameName).body()?.takeIf { it.name.lowercase(Locale.US) == gameName.lowercase(
+            api.game(gameName, "categories.variables").body()?.takeIf { it.name.lowercase(Locale.US) == gameName.lowercase(
                 Locale.US
             ) }
                     ?.also { gameCache[gameName] = it }

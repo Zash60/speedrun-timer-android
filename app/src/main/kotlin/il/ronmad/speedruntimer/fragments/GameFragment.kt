@@ -58,6 +58,7 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
         (mainActivity.viewBinding.toolbar.layoutParams as AppBarLayout.LayoutParams).scrollFlags = 0
     }
 
+    @Suppress("DEPRECATION")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

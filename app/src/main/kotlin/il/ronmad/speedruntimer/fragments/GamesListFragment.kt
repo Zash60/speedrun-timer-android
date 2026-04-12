@@ -115,7 +115,7 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
                         .addToBackStack(null)
                         .commitAllowingStateLoss()
                 } else {
-                    mAdapter?.toggleItemSelected(holder.adapterPosition)
+                    mAdapter?.toggleItemSelected(holder.bindingAdapterPosition)
                     mActionMode?.invalidate()
                 }
             }

@@ -12,6 +12,7 @@ import il.ronmad.speedruntimer.TAG_COUNTDOWN_PREFERENCE_FRAGMENT
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
+    @Suppress("DEPRECATION")
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_preferences, rootKey)
         setHasOptionsMenu(true)
@@ -68,6 +69,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {

@@ -102,7 +102,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
                     selectedCategory = holder.item
                     showBottomSheetDialog()
                 } else {
-                    mAdapter?.toggleItemSelected(holder.adapterPosition)
+                    mAdapter?.toggleItemSelected(holder.bindingAdapterPosition)
                     mActionMode?.invalidate()
                 }
             }

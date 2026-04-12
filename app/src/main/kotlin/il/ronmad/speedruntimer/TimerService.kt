@@ -93,7 +93,8 @@ class TimerService : Service() {
         setupOverlay()
         loadPreferences()
         setupNotificationBroadcastReceiver()
-        startForeground(R.integer.notification_id, buildAndShowNotification())
+        createNotificationChannel()
+        startForeground(R.integer.notification_id, buildNotification())
 
         startedProperly = true
         IS_ACTIVE = true
@@ -195,7 +196,7 @@ class TimerService : Service() {
         }
     }
 
-    private fun buildAndShowNotification(): Notification {
+    private fun buildNotification(): Notification {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val pendingFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -208,7 +209,7 @@ class TimerService : Service() {
         }
         val resetIntent = Intent(getString(R.string.action_reset_timer))
 
-        notificationBuilder = NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
+        val builder = NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
             .setSmallIcon(R.drawable.ic_timer_black_48dp)
             .setContentTitle("${category.gameName} ${category.name}")
             .setContentText(if (category.bestTime > 0) "PB: ${category.bestTime.getFormattedTime()}" else null)
@@ -228,21 +229,17 @@ class TimerService : Service() {
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel()
-        }
-
-        return notificationBuilder.build().also {
-            notificationManager.notify(R.integer.notification_id, it)
-        }
+        notificationBuilder = builder
+        return builder.build()
     }
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             getString(R.string.notification_channel_id),
             getString(R.string.app_name),
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             enableVibration(false)
             enableLights(false)

@@ -18,7 +18,6 @@ import il.ronmad.speedruntimer.databinding.TimerOverlayBinding
 import il.ronmad.speedruntimer.realm.*
 import il.ronmad.speedruntimer.web.Failure
 import il.ronmad.speedruntimer.web.Result
-import il.ronmad.speedruntimer.web.SplitsIO
 import il.ronmad.speedruntimer.web.Success
 import io.realm.Realm
 import kotlinx.coroutines.Dispatchers
@@ -218,61 +217,6 @@ private fun getComparison(context: Context): Comparison {
 
 inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long) =
     fold(0L) { acc, curr -> acc + selector(curr) }
-
-/**
- * Converts Run to Category, adding it to Realm.
- * This overwrites the category's splits if they exist.
- */
-fun SplitsIO.Run.toRealmCategory(
-    gameName: String = this.gameName,
-    categoryName: String = this.categoryName
-): Category {
-    return withRealm {
-        val game = getGameByName(gameName) ?: addGame(gameName)
-        val category = game.getCategoryByName(categoryName) ?: game.addCategory(categoryName)
-        category.apply {
-            executeTransaction { splits.deleteAllFromRealm() }
-            segments.forEach {
-                addSplit(it.segmentName)
-                    .updateData(pbTime = it.pbDuration, bestTime = it.bestDuration)
-            }
-            setPBFromSplits()
-            updateData(runCount = attemptsTotal)
-        }
-    }
-}
-
-/**
- * Convenience method for reading a Json Object from which only one field is needed.
- * @throws IllegalArgumentException if the object does not contain property [name]
- */
-inline fun <reified T> JsonReader.readSingleObjectValue(name: String): T {
-    var value: T? = null
-    beginObject()
-    while (hasNext()) {
-        when (nextName()) {
-            name -> value = nextValue()
-            else -> skipValue()
-        }
-    }
-    endObject()
-    return value ?: throw IllegalArgumentException("Property $name not found in object")
-}
-
-/**
- * @throws IllegalArgumentException if the passed type is not supported by a next*() method
- */
-inline fun <reified T> JsonReader.nextValue(): T {
-    return when (T::class) {
-        String::class -> nextString() as T
-        Boolean::class -> nextBoolean() as T
-        Unit::class -> nextNull() as T
-        Double::class -> nextDouble() as T
-        Long::class -> nextLong() as T
-        Int::class -> nextInt() as T
-        else -> throw IllegalArgumentException("Invalid type")
-    }
-}
 
 fun ExpandableListView.getExpandedGroupPositions(): List<Int> =
     (0 until count).filter { isGroupExpanded(it) }

@@ -1,19 +1,15 @@
 package il.ronmad.speedruntimer.fragments
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.AdapterView
 import androidx.core.view.ViewCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import il.ronmad.speedruntimer.*
 import il.ronmad.speedruntimer.adapters.SplitAdapter
 import il.ronmad.speedruntimer.databinding.FragmentSplitsBinding
 import il.ronmad.speedruntimer.realm.*
-import il.ronmad.speedruntimer.ui.SplitsIOViewModel
 
 class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding::inflate) {
 
@@ -21,8 +17,6 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
     var mAdapter: SplitAdapter? = null
     private var mActionMode: ActionMode? = null
     private var mActionModeCallback: MyActionModeCallback? = null
-
-    private lateinit var splitsIOViewModel: SplitsIOViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,29 +33,6 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        splitsIOViewModel = ViewModelProvider(this).get(SplitsIOViewModel::class.java).apply {
-            importedRun.observe(viewLifecycleOwner) { run ->
-                run?.handle()?.let {
-                    it.toRealmCategory(category.gameName, category.name)
-                    refresh()
-                }
-            }
-            progressBar.observe(viewLifecycleOwner) { progress ->
-                progress?.let {
-                    viewBinding.splitsProgressBar.visibility = if (it) View.VISIBLE else View.GONE
-                }
-            }
-            claimUri.observe(viewLifecycleOwner) { uri ->
-                uri?.handle()?.let {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it)))
-                }
-            }
-            toast.observe(viewLifecycleOwner) { toast ->
-                toast?.handle()?.let {
-                    context?.showToast(it.message)
-                }
-            }
-        }
 
         setupRecyclerView()
         setupActionMode()
@@ -84,14 +55,6 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
         return when (item.itemId) {
             android.R.id.home -> {
                 activity.onBackPressed()
-                true
-            }
-            R.id.menu_export_splitsio -> {
-                onExportSplitsioPressed()
-                true
-            }
-            R.id.menu_import_splitsio -> {
-                onImportSplitsioPressed()
                 true
             }
             R.id.menu_clear_splits -> {
@@ -159,21 +122,6 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
     private fun onClearSplitsPressed() {
         Dialogs.showClearSplitsDialog(activity) {
             clearSplits()
-        }
-    }
-
-    private fun onExportSplitsioPressed() {
-        if (category.splits.isEmpty()) {
-            context?.showToast("There must be at least one split.")
-            return
-        }
-        context?.showToast("Uploading...")
-        splitsIOViewModel.exportRun(category.toRun())
-    }
-
-    private fun onImportSplitsioPressed() {
-        Dialogs.showImportSplitsDialog(activity, category.splits.isNotEmpty()) { id ->
-            splitsIOViewModel.importRun(id)
         }
     }
 

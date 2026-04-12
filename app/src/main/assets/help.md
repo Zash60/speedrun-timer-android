@@ -29,9 +29,6 @@ The game screen features a list of categories and an info tab which shows leader
 The splits (aka segments) for some category can be accessed via the **View & edit splits** button mentioned above. You can add, rename, edit, and rearrange your splits.
 * Add a segment by clicking on the add button at the bottom corner. You will be asked to enter a name and you may also choose its position.
 * Long click (press and hold) on a segment to edit its PB time, best time, name and/or position, or delete it, using the icons in the top bar. Editing segment times changes the overall PB time and Sum of Bests accordingly.
-* You can import/export splits with splits.io, using the up and down icons in the top bar.
-	To download, you need the run ID (example: https://splits.io/2z69 - the ID here is 2z69).
-	When uploading, once the upload is finished, a splits.io page with your uploaded splits will open in your browser.
 
 ---
 

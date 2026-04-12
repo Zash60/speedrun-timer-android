@@ -284,35 +284,6 @@ object Dialogs {
         }
     }
 
-    internal fun showImportSplitsDialog(
-        context: Context,
-        overwrite: Boolean,
-        callback: (String) -> Unit
-    ) {
-        fun MaterialDialog.doImportMode() {
-            message(R.string.dialog_import_splits_msg)
-            input(hintRes = R.string.hint_run_id)
-            positiveButton(R.string.do_import) {
-                getInputField().run { callback(text.toString()) }
-                dismiss()
-            }
-        }
-        MaterialDialog(context).show {
-            title(R.string.dialog_import_splits)
-            if (overwrite) {
-                message(R.string.dialog_import_splits_overwrite)
-                positiveButton(android.R.string.ok) {
-                    clearPositiveListeners()
-                    doImportMode()
-                }
-            } else {
-                doImportMode()
-            }
-            negativeButton(android.R.string.cancel) { dismiss() }
-            noAutoDismiss()
-        }
-    }
-
     internal fun showClearSplitsDialog(context: Context, callback: () -> Unit) {
         MaterialDialog(context).show {
             title(text = "Clear splits")

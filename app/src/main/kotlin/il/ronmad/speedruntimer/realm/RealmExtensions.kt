@@ -2,7 +2,6 @@ package il.ronmad.speedruntimer.realm
 
 import il.ronmad.speedruntimer.Comparison
 import il.ronmad.speedruntimer.sumByLong
-import il.ronmad.speedruntimer.web.SplitsIO
 import io.realm.Case
 import io.realm.Realm
 import io.realm.RealmObject
@@ -128,13 +127,6 @@ fun Category.setPBFromSplits() = updateData(bestTime = splits.sumByLong { it.pbT
 
 fun Category.calculateSob() = splits.sumByLong { it.bestTime }
 
-fun Category.toRun(): SplitsIO.Run =
-    SplitsIO.Run(
-        gameName,
-        name,
-        runCount,
-        splits.map { it.toSegment() })
-
 fun Split.getCategory() = category!!.first()!!
 
 fun Split.updateData(
@@ -170,8 +162,6 @@ fun Split.moveToPosition(newPosition: Int) = realm.executeTransaction {
 }
 
 fun Split.getPosition() = getCategory().splits.indexOf(this)
-
-fun Split.toSegment(): SplitsIO.Segment = SplitsIO.Segment(name, pbTime, bestTime)
 
 fun Point.set(x: Int, y: Int) = realm.executeTransaction {
     this.x = x

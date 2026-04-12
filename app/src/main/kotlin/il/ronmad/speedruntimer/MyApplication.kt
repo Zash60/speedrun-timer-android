@@ -46,6 +46,7 @@ class MyApplication : Application() {
         var pointPrimaryKey = 0L
         val realmConfig = RealmConfiguration.Builder()
             .schemaVersion(REALM_SCHEMA_VERSION)
+            .allowWritesOnUiThread(true)
             .migration { realm, oldVersion, newVersion ->
                 Log.d("MigrateRealm", "old: $oldVersion, new: $newVersion")
                 realm.schema.apply {

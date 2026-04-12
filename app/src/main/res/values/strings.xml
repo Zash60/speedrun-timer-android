@@ -45,6 +45,7 @@
     <string name="toast_close_active_timer">"Please close the currently active timer."</string>
     <string name="toast_allow_permission">"Please allow the app to display over other apps for the timer to work."</string>
     <string name="close_timer">Close timer</string>
+    <string name="reset_timer">Reset timer</string>
     <string name="button_lb_link">View on Speedrun.com</string>
     <string name="button_wr_link">Watch WR</string>
     <string name="menu_delete">Delete</string>
@@ -84,6 +85,7 @@
 
     <!-- Intent actions and extras -->
     <string name="action_close_timer">il.ronmad.speedruntimer.action.CLOSE_TIMER</string>
+    <string name="action_reset_timer">il.ronmad.speedruntimer.action.RESET_TIMER</string>
     <string name="action_start_timer">il.ronmad.speedruntimer.action.START_TIMER</string>
     <string name="extra_game">il.ronmad.speedruntimer.extra.GAME</string>
     <string name="extra_category">il.ronmad.speedruntimer.extra.CATEGORY_NAME</string>

@@ -166,17 +166,22 @@ class TimerService : Service() {
     private fun setupNotificationBroadcastReceiver() {
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == getString(R.string.action_close_timer)) {
-                    val fromOnResume = intent.getBooleanExtra(
-                        getString(R.string.extra_close_timer_from_onresume), true
-                    )
-                    closeTimer(fromOnResume)
+                when (intent.action) {
+                    getString(R.string.action_close_timer) -> {
+                        stopSelf()
+                    }
+                    getString(R.string.action_reset_timer) -> {
+                        onResetPressed()
+                    }
                 }
             }
         }
-        val filter = IntentFilter(getString(R.string.action_close_timer))
+        val filter = IntentFilter().apply {
+            addAction(getString(R.string.action_close_timer))
+            addAction(getString(R.string.action_reset_timer))
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED)
+            registerReceiver(receiver, filter, RECEIVER_EXPORTED)
         } else {
             registerReceiver(receiver, filter)
         }
@@ -201,6 +206,7 @@ class TimerService : Service() {
         val closeIntent = Intent(getString(R.string.action_close_timer)).apply {
             putExtra(getString(R.string.extra_close_timer_from_onresume), false)
         }
+        val resetIntent = Intent(getString(R.string.action_reset_timer))
 
         notificationBuilder = NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
             .setSmallIcon(R.drawable.ic_timer_black_48dp)
@@ -208,6 +214,11 @@ class TimerService : Service() {
             .setContentText(if (category.bestTime > 0) "PB: ${category.bestTime.getFormattedTime()}" else null)
             .setContentIntent(
                 PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), pendingFlags)
+            )
+            .addAction(
+                R.drawable.ic_refresh_black_24dp,
+                getString(R.string.reset_timer),
+                PendingIntent.getBroadcast(this, 0, resetIntent, pendingFlags)
             )
             .addAction(
                 R.drawable.ic_close_black_24dp,

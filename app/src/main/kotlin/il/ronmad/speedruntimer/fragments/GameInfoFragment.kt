@@ -71,12 +71,13 @@ class GameInfoFragment : BaseFragment<FragmentGameInfoBinding>(FragmentGameInfoB
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.apply {
-            putIntArray(
+        _viewBinding?.apply {
+            outState.putIntArray(
                 KEY_LIST_EXPANDED_GROUPS,
-                viewBinding.expandableListView.getExpandedGroupPositions().toIntArray()
+                expandableListView.getExpandedGroupPositions().toIntArray()
             )
         }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {

@@ -168,6 +168,11 @@ class TimerService : Service() {
 
     private fun setupNotification(): Notification {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
         notificationBuilder = NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
             .setSmallIcon(R.drawable.ic_timer_black_48dp)
             .setContentTitle("${category.gameName} ${category.name}")
@@ -175,7 +180,7 @@ class TimerService : Service() {
                 PendingIntent.getActivity(
                     this, 0,
                     Intent(this, MainActivity::class.java),
-                    PendingIntent.FLAG_UPDATE_CURRENT
+                    pendingIntentFlags
                 )
             )
             .addAction(
@@ -186,7 +191,7 @@ class TimerService : Service() {
                     Intent(getString(R.string.action_close_timer)).also {
                         it.putExtra(getString(R.string.extra_close_timer_from_onresume), false)
                     },
-                    PendingIntent.FLAG_UPDATE_CURRENT
+                    pendingIntentFlags
                 )
             )
             .setAutoCancel(true)

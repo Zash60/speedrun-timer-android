@@ -24,7 +24,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
         val categoryName = requireArguments().getString(ARG_CATEGORY_NAME)!!
         category = realm.getCategoryByName(gameName, categoryName)!!
 
-        mActionBar?.apply {
+        actionBar?.apply {
             title = category.gameName
             subtitle = category.name
             setDisplayHomeAsUpEnabled(true)
@@ -44,7 +44,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mActionBar?.subtitle = null
+        actionBar?.subtitle = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -66,7 +66,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
     }
 
     override fun onFabAddPressed() {
-        Dialogs.showNewSplitDialog(activity, category) { name, position ->
+        Dialogs.showNewSplitDialog(requireContext(), category) { name, position ->
             addSplit(name, position)
         }
     }
@@ -120,9 +120,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
     }
 
     private fun onClearSplitsPressed() {
-        Dialogs.showClearSplitsDialog(activity) {
-            clearSplits()
-        }
+        Dialogs.showClearSplitsDialog(requireContext()) { clearSplits() }
     }
 
     private fun setupActionMode() {
@@ -130,7 +128,7 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
             onEditPressed = {
                 mAdapter?.selectedItems?.singleOrNull()?.let { id ->
                     category.getSplitById(id)?.let {
-                        Dialogs.showEditSplitDialog(activity, it) { name, newPBTime, newBestTime, newPosition ->
+                        Dialogs.showEditSplitDialog(requireContext(), it) { name, newPBTime, newBestTime, newPosition ->
                             editSplit(it, name, newPBTime, newBestTime, newPosition)
                         }
                     }
@@ -139,19 +137,18 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
             onDeletePressed = {
                 mAdapter?.let {
                     if (it.selectedItems.isNotEmpty()) {
-                        Dialogs.showRemoveSplitsDialog(activity) {
+                        Dialogs.showRemoveSplitsDialog(requireContext()) {
                             removeSplits(it.selectedItems)
                         }
                     }
                 }
-
             }
             onDestroy = { mActionMode = null }
         }
     }
 
     private fun setupRecyclerView() {
-        mAdapter = SplitAdapter(category.splits, activity.getComparison()).apply {
+        mAdapter = SplitAdapter(category.splits, mainActivity.getComparison()).apply {
             onItemClickListener = { _, position ->
                 mActionMode?.let {
                     mAdapter?.toggleItemSelected(position)
@@ -161,15 +158,15 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
             onItemLongClickListener = { _, position ->
                 if (mActionMode == null) {
                     mAdapter?.toggleItemSelected(position)
-                    mActionMode = activity.startActionMode(mActionModeCallback)
+                    mActionMode = requireActivity().startActionMode(mActionModeCallback)
                     true
                 } else false
             }
         }
         viewBinding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(activity)
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = mAdapter
-            addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
             ViewCompat.setNestedScrollingEnabled(this, false)
         }
     }
@@ -180,11 +177,8 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 mAdapter?.comparison = when (position) {
-                    // Current Comparison
-                    0 -> activity.getComparison()
-                    // Personal Best
+                    0 -> mainActivity.getComparison()
                     1 -> Comparison.PERSONAL_BEST
-                    // Best Segments
                     2 -> Comparison.BEST_SEGMENTS
                     else -> Comparison.PERSONAL_BEST
                 }

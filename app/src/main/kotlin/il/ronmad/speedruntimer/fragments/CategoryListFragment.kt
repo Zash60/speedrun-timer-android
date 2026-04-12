@@ -8,6 +8,7 @@ import android.view.ActionMode
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
@@ -41,7 +42,6 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             if (Settings.canDrawOverlays(requireContext())) {
                 launchTimer()
             } else {
-                // Retry with delays — the permission UI may still be processing
                 retryPermissionWithBackoff()
             }
         }
@@ -60,7 +60,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         super.onResume()
         mAdapter?.onItemsEdited()
         if (waitingForTimerPermission && !TimerService.IS_ACTIVE) {
-            if (Settings.canDrawOverlays(context)) {
+            if (Settings.canDrawOverlays(requireContext())) {
                 launchTimer()
             }
         }
@@ -70,7 +70,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         waitingForTimerPermission = false
         pendingTimerLaunch = false
         val selected = selectedCategory ?: return
-        TimerService.launchTimer(context, game.name, selected.name)
+        TimerService.launchTimer(requireContext(), game.name, selected.name)
     }
 
     private fun checkEmptyList() {
@@ -82,7 +82,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             onEditPressed = {
                 mAdapter?.selectedItems?.singleOrNull()?.let { id ->
                     game.getCategoryById(id)?.let { category ->
-                        Dialogs.showEditCategoryDialog(activity, category) { name, pbTime, runCount ->
+                        Dialogs.showEditCategoryDialog(requireContext(), category) { name, pbTime, runCount ->
                             actionEditCategory(category, name, pbTime, runCount)
                         }
                     }
@@ -96,7 +96,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     }
 
     private fun setupRecyclerView() {
-        mAdapter = CategoryAdapter(activity, game.categories).apply {
+        mAdapter = CategoryAdapter(requireContext(), game.categories).apply {
             onItemClickListener = { holder, _ ->
                 if (mActionMode == null) {
                     selectedCategory = holder.item
@@ -109,33 +109,32 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             onItemLongClickListener = { _, position ->
                 if (mActionMode == null) {
                     mAdapter?.toggleItemSelected(position)
-                    mActionMode = activity.startActionMode(mActionModeCallback)
+                    mActionMode = requireActivity().startActionMode(mActionModeCallback)
                     true
                 } else false
             }
         }
         viewBinding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(activity)
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = mAdapter
-            addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
             ViewCompat.setNestedScrollingEnabled(this, false)
         }
     }
 
     override fun onFabAddPressed() {
-        Dialogs.showNewCategoryDialog(activity, game) { addCategory(it) }
+        Dialogs.showNewCategoryDialog(requireContext(), game) { addCategory(it) }
     }
 
     private fun checkPermissionAndStartTimer() {
-        val ctx = context ?: return
-        if (!Settings.canDrawOverlays(ctx)) {
+        if (!Settings.canDrawOverlays(requireContext())) {
             waitingForTimerPermission = true
             pendingTimerLaunch = true
-            ctx.showToast(ctx.getString(R.string.toast_allow_permission), 1)
+            requireContext().showToast(requireContext().getString(R.string.toast_allow_permission), 1)
             getOverlayPermissionLauncher.launch(
                 Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:${activity.packageName}")
+                    Uri.parse("package:${requireActivity().packageName}")
                 )
             )
         } else {
@@ -152,12 +151,11 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         viewLifecycleOwner.lifecycleScope.launch {
             repeat(3) { attempt ->
                 delay(500L * (attempt + 1))
-                if (Settings.canDrawOverlays(context)) {
+                if (Settings.canDrawOverlays(requireContext())) {
                     launchTimer()
                     return@repeat
                 }
             }
-            // If all retries fail, reset the pending flag
             waitingForTimerPermission = false
             pendingTimerLaunch = false
         }
@@ -186,7 +184,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     private fun viewSplits() {
         val selected = selectedCategory ?: return
-        activity.supportFragmentManager.beginTransaction()
+        requireActivity().supportFragmentManager.beginTransaction()
             .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
             .replace(R.id.fragment_container, SplitsFragment.newInstance(game.name, selected.name), TAG_SPLITS_LIST_FRAGMENT)
             .addToBackStack(null)
@@ -197,7 +195,7 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         CategoryBottomSheetFragment().also {
             it.onViewSplitsClickListener = ::viewSplits
             it.onLaunchTimerClickListener = ::checkPermissionAndStartTimer
-            it.show(activity.supportFragmentManager, TAG_CATEGORY_BOTTOM_SHEET_DIALOG)
+            it.show(requireActivity().supportFragmentManager, TAG_CATEGORY_BOTTOM_SHEET_DIALOG)
         }
     }
 
@@ -205,11 +203,11 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         if (toRemove.isEmpty()) return
         game.getCategories(toRemove).singleOrNull()?.let {
             if (it.bestTime > 0) {
-                Dialogs.showDeleteCategoryDialog(activity, it) { removeCategories(toRemove) }
+                Dialogs.showDeleteCategoryDialog(requireContext(), it) { removeCategories(toRemove) }
             } else {
                 removeCategories(toRemove)
             }
-        } ?: Dialogs.showDeleteCategoriesDialog(activity) { removeCategories(toRemove) }
+        } ?: Dialogs.showDeleteCategoriesDialog(requireContext()) { removeCategories(toRemove) }
     }
 
     private fun actionEditCategory(category: Category, newName: String, newBestTime: Long, prevRunCount: Int) {

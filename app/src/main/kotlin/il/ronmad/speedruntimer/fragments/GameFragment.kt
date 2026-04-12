@@ -24,14 +24,14 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
     private lateinit var viewPagerAdapter: GameViewPagerAdapter
 
     private val viewPager get() = viewBinding.viewPager
-    private val tabLayout get() = activity.viewBinding.tabLayout
+    private val tabLayout get() = mainActivity.viewBinding.tabLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
 
-        mActionBar?.apply {
+        actionBar?.apply {
             title = game.name
             setDisplayHomeAsUpEnabled(true)
         }
@@ -49,14 +49,14 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
 
     override fun onResume() {
         super.onResume()
-        (activity.viewBinding.toolbar.layoutParams as AppBarLayout.LayoutParams).scrollFlags =
+        (mainActivity.viewBinding.toolbar.layoutParams as AppBarLayout.LayoutParams).scrollFlags =
             SCROLL_FLAG_SCROLL or SCROLL_FLAG_ENTER_ALWAYS or SCROLL_FLAG_SNAP
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         tabLayout.visibility = View.GONE
-        (activity.viewBinding.toolbar.layoutParams as AppBarLayout.LayoutParams).scrollFlags = 0
+        (mainActivity.viewBinding.toolbar.layoutParams as AppBarLayout.LayoutParams).scrollFlags = 0
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

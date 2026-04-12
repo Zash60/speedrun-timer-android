@@ -20,7 +20,7 @@ abstract class BaseFragment<T : ViewBinding>(
 ) : Fragment() {
 
     private var _viewBinding: T? = null
-    protected val viewBinding: T get() = _viewBinding!!
+    protected val viewBinding: T get() = requireNotNull(_viewBinding) { "ViewBinding accessed before onCreateView or after onDestroyView" }
 
     protected lateinit var realm: Realm
 

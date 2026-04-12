@@ -22,8 +22,8 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mActionBar?.apply {
-            title = activity.getString(R.string.app_name)
+        actionBar?.apply {
+            title = requireContext().getString(R.string.app_name)
             setDisplayHomeAsUpEnabled(false)
         }
     }
@@ -39,9 +39,7 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
     }
 
     override fun onFabAddPressed() {
-        Dialogs.showNewGameDialog(activity, realm) {
-            addGame(it)
-        }
+        Dialogs.showNewGameDialog(requireContext(), realm) { addGame(it) }
     }
 
     fun refreshList() {
@@ -80,7 +78,7 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
             onEditPressed = {
                 mAdapter?.selectedItems?.singleOrNull()?.let { id ->
                     realm.getGameById(id)?.let { game ->
-                        Dialogs.showEditGameDialog(activity, game) {
+                        Dialogs.showEditGameDialog(requireContext(), game) {
                             editGameName(game, it)
                         }
                     }
@@ -89,7 +87,7 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
             onDeletePressed = {
                 mAdapter?.let {
                     if (it.selectedItems.isNotEmpty()) {
-                        Dialogs.showDeleteGamesDialog(activity) {
+                        Dialogs.showDeleteGamesDialog(requireContext()) {
                             removeGames(it.selectedItems)
                         }
                     }
@@ -101,10 +99,10 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
 
     private fun setupRecyclerView() {
         mAdapter = GameAdapter(realm.where<Game>().findAll()).apply {
-            onItemClickListener = { holder, position ->
+            onItemClickListener = { holder, _ ->
                 if (mActionMode == null) {
                     val game = holder.item
-                    activity.supportFragmentManager.beginTransaction()
+                    requireActivity().supportFragmentManager.beginTransaction()
                         .setCustomAnimations(
                             R.anim.fade_in, R.anim.fade_out,
                             R.anim.fade_in, R.anim.fade_out
@@ -117,22 +115,22 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
                         .addToBackStack(null)
                         .commitAllowingStateLoss()
                 } else {
-                    mAdapter?.toggleItemSelected(position)
+                    mAdapter?.toggleItemSelected(holder.adapterPosition)
                     mActionMode?.invalidate()
                 }
             }
             onItemLongClickListener = { _, position ->
                 if (mActionMode == null) {
                     mAdapter?.toggleItemSelected(position)
-                    mActionMode = activity.startActionMode(mActionModeCallback)
+                    mActionMode = requireActivity().startActionMode(mActionModeCallback)
                     true
                 } else false
             }
         }
         viewBinding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(activity)
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = mAdapter
-            addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
             ViewCompat.setNestedScrollingEnabled(this, false)
         }
     }

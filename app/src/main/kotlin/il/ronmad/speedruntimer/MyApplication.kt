@@ -12,7 +12,6 @@ import io.realm.FieldAttribute
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.RealmMigration
-import io.realm.RealmSchema
 import java.util.*
 
 const val REALM_SCHEMA_VERSION = 4L
@@ -63,64 +62,54 @@ private class Migration : RealmMigration {
     private var pointPrimaryKey = 0L
 
     override fun migrate(realm: DynamicRealm, oldVersion: Long, newVersion: Long) {
+        val schema = realm.schema
         var version = oldVersion.toInt()
 
-        fun step(block: RealmSchema.() -> Unit) {
-            block()
+        if (version == 0) {
+            val splitSchema = schema.create(Split::class.java.simpleName)
+                .addField("name", String::class.java, FieldAttribute.REQUIRED)
+                .addField("pbTime", Long::class.java, FieldAttribute.REQUIRED)
+                .addField("bestTime", Long::class.java, FieldAttribute.REQUIRED)
+            schema.get(Category::class.java.simpleName)
+                ?.addRealmListField("splits", splitSchema)
             version++
         }
-
-        realm.schema.apply {
-            if (version == 0) {
-                step {
-                    val splitSchema = create(Split::class.java.simpleName)
-                        .addField("name", String::class.java, FieldAttribute.REQUIRED)
-                        .addField("pbTime", Long::class.java, FieldAttribute.REQUIRED)
-                        .addField("bestTime", Long::class.java, FieldAttribute.REQUIRED)
-                    get(Category::class.java.simpleName)
-                        ?.addRealmListField("splits", splitSchema)
-                }
-            }
-            if (version == 1) {
-                step {
-                    get(Game::class.java.simpleName)?.addIndex("name")
-                    get(Category::class.java.simpleName)?.addIndex("name")
-                    get(Split::class.java.simpleName)?.addIndex("name")
-                }
-            }
-            if (version == 2) {
-                step {
-                    get(Game::class.java.simpleName)
-                        ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
-                        ?.transform { it.setLong("id", ++gamePrimaryKey) }
-                        ?.addPrimaryKey("id")
-                    get(Category::class.java.simpleName)
-                        ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
-                        ?.transform { it.setLong("id", ++categoryPrimaryKey) }
-                        ?.addPrimaryKey("id")
-                    get(Split::class.java.simpleName)
-                        ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
-                        ?.transform { it.setLong("id", ++splitPrimaryKey) }
-                        ?.addPrimaryKey("id")
-                    get(Point::class.java.simpleName)
-                        ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
-                        ?.transform { it.setLong("id", ++pointPrimaryKey) }
-                        ?.addPrimaryKey("id")
-                }
-            }
-            if (version == 3) {
-                step {
-                    get(Category::class.java.simpleName)
-                        ?.addField("gameName", String::class.java, FieldAttribute.REQUIRED)
-                        ?.transform { obj ->
-                            obj.linkingObjects(Game::class.java.simpleName, "categories")
-                                .singleOrNull()
-                                ?.let { game ->
-                                    obj.setString("gameName", game.getString("name"))
-                                }
+        if (version == 1) {
+            schema.get(Game::class.java.simpleName)?.addIndex("name")
+            schema.get(Category::class.java.simpleName)?.addIndex("name")
+            schema.get(Split::class.java.simpleName)?.addIndex("name")
+            version++
+        }
+        if (version == 2) {
+            schema.get(Game::class.java.simpleName)
+                ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
+                ?.transform { it.setLong("id", ++gamePrimaryKey) }
+                ?.addPrimaryKey("id")
+            schema.get(Category::class.java.simpleName)
+                ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
+                ?.transform { it.setLong("id", ++categoryPrimaryKey) }
+                ?.addPrimaryKey("id")
+            schema.get(Split::class.java.simpleName)
+                ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
+                ?.transform { it.setLong("id", ++splitPrimaryKey) }
+                ?.addPrimaryKey("id")
+            schema.get(Point::class.java.simpleName)
+                ?.addField("id", Long::class.java, FieldAttribute.INDEXED)
+                ?.transform { it.setLong("id", ++pointPrimaryKey) }
+                ?.addPrimaryKey("id")
+            version++
+        }
+        if (version == 3) {
+            schema.get(Category::class.java.simpleName)
+                ?.addField("gameName", String::class.java, FieldAttribute.REQUIRED)
+                ?.transform { obj ->
+                    obj.linkingObjects(Game::class.java.simpleName, "categories")
+                        .singleOrNull()
+                        ?.let { game ->
+                            obj.setString("gameName", game.getString("name"))
                         }
                 }
-            }
+            version++
         }
     }
 }

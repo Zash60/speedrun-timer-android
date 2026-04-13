@@ -26,6 +26,8 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
+        setHasOptionsMenu(true)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
 

@@ -20,6 +20,8 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
+        setHasOptionsMenu(true)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         val categoryName = requireArguments().getString(ARG_CATEGORY_NAME)!!
         category = realm.getCategoryByName(gameName, categoryName)!!

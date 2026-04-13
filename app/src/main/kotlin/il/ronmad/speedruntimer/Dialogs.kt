@@ -122,7 +122,7 @@ object Dialogs {
             customView(view = editCategoryViewBinding.root)
             editCategoryViewBinding.categoryName.apply {
                 setText(category.name)
-                setSelection(text.length)
+                setSelection(text?.length ?: 0)
                 onTextChanged {
                     setActionButtonEnabled(WhichButton.POSITIVE, !it.isNullOrBlank())
                 }
@@ -169,7 +169,7 @@ object Dialogs {
             }
             editSplitViewBinding.nameInput.apply {
                 setText(split.name)
-                setSelection(text.length)
+                setSelection(text?.length ?: 0)
                 onTextChanged {
                     setActionButtonEnabled(WhichButton.POSITIVE, !it.isNullOrBlank())
                 }

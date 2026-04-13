@@ -23,6 +23,12 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         val categoryName = requireArguments().getString(ARG_CATEGORY_NAME)!!
         category = realm.getCategoryByName(gameName, categoryName)!!
+
+        actionBar?.apply {
+            title = category.gameName
+            subtitle = category.name
+            setDisplayHomeAsUpEnabled(true)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,6 +40,11 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
         updateSob()
 
         fabAdd.setOnClickListener { onFabAddPressed() }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        actionBar?.subtitle = null
     }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")

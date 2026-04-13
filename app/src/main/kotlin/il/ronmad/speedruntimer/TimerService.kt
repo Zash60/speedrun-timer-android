@@ -256,6 +256,7 @@ class TimerService : Service() {
         mWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         mBinding = TimerOverlayBinding.inflate(LayoutInflater.from(this))
 
+        // prefs must be initialized before this (done in onStartCommand)
         applyDisplayPreferences()
         setupTouchHandling()
         addOverlayToWindow()

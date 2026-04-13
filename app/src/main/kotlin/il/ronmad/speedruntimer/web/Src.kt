@@ -200,7 +200,8 @@ data class SrcCategory(
     val name: String,
     val subCategories: List<SrcVariable>,
     val leaderboardUrl: String?,
-    val id: String = ""
+    val id: String = "",
+    val url: String = ""
 )
 
 data class SrcLink(val rel: String?, val uri: String)
@@ -317,8 +318,9 @@ class Src private constructor() {
                     SrcCategory(
                         name = category.name,
                         subCategories = subCategories,
-                        leaderboardUrl = null, // Will be set when fetching leaderboards
-                        id = category.id
+                        leaderboardUrl = null,
+                        id = category.id,
+                        url = category.url
                     )
                 }
 

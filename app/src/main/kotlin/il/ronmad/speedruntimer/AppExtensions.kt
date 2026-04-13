@@ -22,6 +22,10 @@ import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.math.abs
 
+fun String.isValidForGame(realm: Realm): Boolean {
+    return isNotBlank() && !realm.gameExists(this)
+}
+
 fun EditText.isValidForGame(realm: Realm): Boolean {
     return when {
         text.isNullOrBlank() -> {
@@ -38,6 +42,10 @@ fun EditText.isValidForGame(realm: Realm): Boolean {
     }
 }
 
+fun String.isValidForCategory(game: Game): Boolean {
+    return isNotBlank() && !game.categoryExists(this)
+}
+
 fun EditText.isValidForCategory(game: Game): Boolean {
     return when {
         text.isNullOrBlank() -> {
@@ -52,6 +60,10 @@ fun EditText.isValidForCategory(game: Game): Boolean {
         }
         else -> true
     }
+}
+
+fun String.isValidForSplit(category: Category): Boolean {
+    return isNotBlank() && !category.splitExists(this)
 }
 
 fun EditText.isValidForSplit(category: Category): Boolean {

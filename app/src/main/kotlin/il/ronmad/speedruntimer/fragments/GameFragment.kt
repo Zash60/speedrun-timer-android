@@ -3,7 +3,6 @@ package il.ronmad.speedruntimer.fragments
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -21,11 +20,6 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
 
     private lateinit var game: Game
     private lateinit var viewPagerAdapter: GameViewPagerAdapter
-    private val backPressedCallback = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() {
-            viewPager.currentItem = TAB_CATEGORIES
-        }
-    }
 
     private val viewPager get() = viewBinding.viewPager
     private val tabLayout get() = mainActivity.viewBinding.tabLayout
@@ -45,7 +39,6 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressedCallback)
 
         setupViewPager()
         tabLayout.visibility = View.VISIBLE
@@ -69,11 +62,7 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                if (viewPager.currentItem == TAB_INFO) {
-                    viewPager.currentItem = TAB_CATEGORIES
-                } else {
-                    requireActivity().supportFragmentManager.popBackStack()
-                }
+                requireActivity().supportFragmentManager.popBackStack()
                 true
             }
             else -> false
@@ -97,7 +86,6 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
                 when (position) {
                     TAB_CATEGORIES -> {
                         fabAdd.show()
-                        backPressedCallback.isEnabled = false
                     }
                     TAB_INFO -> {
                         fabAdd.hide()
@@ -105,8 +93,6 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
                             ?.let { it as? GameInfoFragment }
                             ?.takeIf { !it.isDataShowing }
                             ?.refreshData()
-
-                        backPressedCallback.isEnabled = true
                     }
                 }
             }

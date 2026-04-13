@@ -55,7 +55,7 @@ class SrcTests {
                         assertEquals(18, size)
                         assertTrue(get(0).runs.isNotEmpty())
                         assertEquals("Standard", get(0).categoryName)
-                        assertEquals("https://www.speedrun.com/thoth#Standard", get(0).weblink)
+                        assertEquals("https://www.speedrun.com/thoth/standard", get(0).weblink)
                     }
                 }
                 is Failure -> fail()

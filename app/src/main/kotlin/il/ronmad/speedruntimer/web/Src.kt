@@ -1,10 +1,10 @@
 package il.ronmad.speedruntimer.web
 
-import com.google.common.collect.Lists
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
+import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.annotations.SerializedName
 import il.ronmad.speedruntimer.SRC_API
 import il.ronmad.speedruntimer.toResult
 import il.ronmad.speedruntimer.web.Result
@@ -13,52 +13,202 @@ import il.ronmad.speedruntimer.web.Failure
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.*
-import java.util.*
+import retrofit2.http.Body
+import retrofit2.http.POST
+import java.lang.reflect.Type
+import java.util.Locale
 import kotlin.math.roundToLong
 
+// ==================== API Interface ====================
+
 interface SrcAPI {
-    @GET("games")
-    suspend fun game(
-            @Query("name") name: String,
-            @Query("embed") embed: String
-    ): Response<SrcGame>
+    @POST("GetSearch")
+    suspend fun searchGames(@Body request: SearchRequest): Response<SearchResponse>
 
-    @GET
-    suspend fun leaderboard(
-            @Url url: String,
-            @QueryMap variables: Map<String, String> = emptyMap()
-    ): Response<SrcLeaderboard>
+    @POST("GetGameData")
+    suspend fun getGameData(@Body request: GetGameDataRequest): Response<GameDataResponse>
 
-    @GET
-    suspend fun user(@Url url: String): Response<SrcUser>
+    @POST("GetGameLeaderboard2")
+    suspend fun getLeaderboard(@Body request: GetLeaderboardRequest): Response<LeaderboardResponse>
 
-    @GET("platforms/{id}")
-    suspend fun platform(@Path("id") id: String): Response<SrcPlatform>
+    @POST("GetUserSummary")
+    suspend fun getUser(@Body request: GetUserRequest): Response<UserResponse>
+
+    @POST("GetStaticData")
+    suspend fun getStaticData(@Body request: EmptyRequest = EmptyRequest()): Response<StaticDataResponse>
 }
 
+// ==================== Request Models ====================
+
+data class SearchRequest(
+    val query: String,
+    val includeGames: Boolean = true,
+    val limit: Int = 50
+)
+
+data class GetGameDataRequest(
+    val gameUrl: String? = null,
+    val gameId: String? = null
+)
+
+data class GetLeaderboardRequest(
+    val gameId: String,
+    val categoryId: String,
+    val video: Int = 0, // 0 = include runs without video
+    val verified: Int = 1, // 1 = only verified runs
+    val page: Int = 1
+)
+
+data class GetUserRequest(val url: String)
+object EmptyRequest
+
+// ==================== Response Models ====================
+
+data class SearchResponse(
+    val gameList: List<V2Game> = emptyList(),
+    val platformList: List<V2Platform> = emptyList()
+)
+
+data class GameDataResponse(
+    val game: V2Game? = null,
+    val categories: List<V2Category> = emptyList(),
+    val levels: List<V2Level> = emptyList(),
+    val variables: List<V2Variable> = emptyList(),
+    val values: List<V2Value> = emptyList(),
+    val platforms: List<V2Platform> = emptyList(),
+    val regions: List<V2Region> = emptyList()
+)
+
+data class LeaderboardResponse(
+    val runList: List<V2Run> = emptyList(),
+    val playerList: List<V2Player> = emptyList(),
+    val platformList: List<V2Platform> = emptyList(),
+    val pagination: V2Pagination? = null
+)
+
+data class UserResponse(
+    val user: V2User? = null
+)
+
+data class StaticDataResponse(
+    val platformList: List<V2Platform> = emptyList(),
+    val regionList: List<V2Region> = emptyList()
+)
+
+// ==================== Data Models ====================
+
+data class V2Game(
+    val id: String,
+    val name: String,
+    val url: String,
+    val coverPath: String? = null,
+    val runCount: Int = 0
+)
+
+data class V2Category(
+    val id: String,
+    val name: String,
+    val url: String,
+    val gameId: String,
+    val isMisc: Boolean = false,
+    val isPerLevel: Boolean = false,
+    val timeDirection: String = "asc"
+)
+
+data class V2Level(
+    val id: String,
+    val name: String,
+    val gameId: String
+)
+
+data class V2Variable(
+    val id: String,
+    val name: String,
+    val isSubcategory: Boolean = false,
+    val categoryId: String? = null,
+    val gameId: String
+)
+
+data class V2Value(
+    val id: String,
+    val name: String,
+    val variableId: String,
+    val rules: String? = null
+)
+
+data class V2Run(
+    val id: String,
+    val gameId: String,
+    val categoryId: String,
+    val levelId: String? = null,
+    val time: Float? = null,
+    val timeWithLoads: Float? = null,
+    val platformId: String? = null,
+    val emulator: Boolean = false,
+    val video: String? = null,
+    val date: Long = 0,
+    val place: Int? = null,
+    val playerIds: List<String> = emptyList(),
+    val valueIds: List<String> = emptyList(),
+    val obsolete: Boolean? = null
+)
+
+data class V2Player(
+    val id: String,
+    val name: String,
+    val url: String? = null
+)
+
+data class V2Platform(
+    val id: String,
+    val name: String
+)
+
+data class V2Region(
+    val id: String,
+    val name: String
+)
+
+data class V2User(
+    val id: String,
+    val name: String,
+    val url: String
+)
+
+data class V2Pagination(
+    val count: Int = 0,
+    val page: Int = 1,
+    val pages: Int = 1,
+    val per: Int = 100
+)
+
+// ==================== Legacy compatibility models ====================
+
 data class SrcGame(
-        val name: String,
-        val categories: List<SrcCategory>,
-        val links: List<SrcLink>
+    val name: String,
+    val categories: List<SrcCategory>,
+    val links: List<SrcLink>,
+    val id: String = ""
 ) {
-
     companion object {
-
         val EMPTY_GAME = SrcGame("", emptyList(), emptyList())
     }
 }
 
 data class SrcCategory(
-        val name: String,
-        val subCategories: List<SrcVariable>,
-        val leaderboardUrl: String?
+    val name: String,
+    val subCategories: List<SrcVariable>,
+    val leaderboardUrl: String?,
+    val id: String = ""
 )
 
 data class SrcLink(val rel: String?, val uri: String)
 
-data class SrcLeaderboard(val weblink: String, val runs: List<SrcRun>) {
-
+data class SrcLeaderboard(
+    val weblink: String,
+    val runs: List<SrcRun>,
+    val id: String = ""
+) {
     var categoryName = ""
     var subcategories: List<String> = listOf()
     var wrRunners = ""
@@ -67,151 +217,119 @@ data class SrcLeaderboard(val weblink: String, val runs: List<SrcRun>) {
     suspend fun initWrData(srcApi: SrcAPI) {
         if (runs.isEmpty()) return
         val wrRun = runs[0]
-        // Don't simplify because joinToString can't receive a suspending transform function
-        wrRunners = wrRun.players.map {
-            if (it.rel == "guest") it.name!!
-            else {
-                srcApi.user(it.uri).body()?.name ?: "[unknown]"
-            }
-        }.joinToString()
-
-        wrPlatform = wrRun.platformId?.let { platformId ->
-            srcApi.platform(platformId).body()?.name
-        } ?: "[unknown]"
+        wrRunners = wrRun.players.joinToString()
+        wrPlatform = wrRun.platform ?: "[unknown]"
     }
 }
 
 data class SrcRun(
-        val place: Int,
-        val videoLink: SrcLink?,
-        val players: List<SrcPlayer>,
-        val time: Long, val platformId: String?
+    val place: Int,
+    val videoLink: SrcLink?,
+    val players: List<String>,
+    val time: Long,
+    val platform: String?
 )
 
-data class SrcPlayer(val rel: String, val name: String?, val uri: String)
+data class SrcVariable(
+    val id: String,
+    val name: String,
+    val values: List<SrcValue>
+)
 
-data class SrcUser(val name: String)
+data class SrcValue(
+    val id: String,
+    val label: String
+)
 
-data class SrcPlatform(val name: String)
-
-data class SrcVariable(val id: String, val name: String, val values: List<SrcValue>)
-
-data class SrcValue(val id: String, val label: String)
+// ==================== Main API Client ====================
 
 class Src private constructor() {
-
-    // If application was not passed, there will be no caching.
 
     private val gson = setupGson()
     private val api = setupApi()
 
     private var gameCache: MutableMap<String, SrcGame> = mutableMapOf()
+    private var platformCache: MutableMap<String, String> = mutableMapOf()
+    private var staticDataLoaded = false
 
     private fun setupGson(): Gson {
-        fun variablesDeserializer(json: JsonArray): List<SrcVariable> {
-            return json
-                    .filter {
-                        val variableObj = it.asJsonObject
-                        variableObj.get("is-subcategory").asBoolean
-                    }
-                    .map { variableElement ->
-                        val variableObj = variableElement.asJsonObject
-                        val id = variableObj.get("id").asString
-                        val name = variableObj.get("name").asString
-                        val valuesObj = variableObj.getAsJsonObject("values").getAsJsonObject("values")
-                        val values = valuesObj.entrySet().map {
-                            val label = it.value.asJsonObject.get("label").asString
-                            SrcValue(it.key, label)
-                        }
-                        SrcVariable(id, name, values)
-                    }
-        }
-
-        fun categoriesDeserializer(json: JsonArray): List<SrcCategory> {
-            return json
-                    .map { categoryElement ->
-                        val categoryObj = categoryElement.asJsonObject
-                        val name = categoryObj.get("name").asString
-                        val subCategories = variablesDeserializer(
-                                categoryObj.getAsJsonObject("variables").getAsJsonArray("data"))
-                        val links = Gson().fromJson(categoryObj.get("links"), Array<SrcLink>::class.java)
-                        val leaderboardLink = links.find { it.rel == "leaderboard" }?.uri
-                        SrcCategory(name, subCategories, leaderboardLink)
-                    }
-        }
-
-        val gamesDeserializer = JsonDeserializer { json, _, _ ->
-            val gameArray = json.asJsonObject.getAsJsonArray("data")
-            if (gameArray.isEmpty)
-                return@JsonDeserializer SrcGame.EMPTY_GAME
-            val gameObj = gameArray[0].asJsonObject
-            val name = gameObj.getAsJsonObject("names").get("international").asString
-            val categories = categoriesDeserializer(gameObj.getAsJsonObject("categories").getAsJsonArray("data"))
-            val links = Gson().fromJson(gameObj.get("links"), Array<SrcLink>::class.java)
-            SrcGame(name, categories, links.toList())
-        }
-
-        val leaderboardDeserializer = JsonDeserializer { json, _, _ ->
-            val gson = Gson()
-            val leaderboardObj = json.asJsonObject.getAsJsonObject("data")
-            val weblink = leaderboardObj.get("weblink").asString
-            val lbRuns = leaderboardObj.getAsJsonArray("runs").map {
-                val lbRun = it.asJsonObject
-                val place = lbRun.get("place").asInt
-                val run = lbRun.getAsJsonObject("run")
-
-                val videoLink = when {
-                    run.get("videos").isJsonNull -> null
-                    run.getAsJsonObject("videos").get("links") == null -> null
-                    run.getAsJsonObject("videos").get("links").isJsonNull -> null
-                    run.getAsJsonObject("videos").getAsJsonArray("links").isEmpty -> null
-                    else -> gson.fromJson(
-                            run.getAsJsonObject("videos").getAsJsonArray("links")[0],
-                            SrcLink::class.java)
-                }
-                val players = gson.fromJson(run.get("players"),
-                        Array<SrcPlayer>::class.java).toList()
-                val time = (run.getAsJsonObject("times")
-                        .get("primary_t").asFloat * 1000).roundToLong()
-                val platform = run.getAsJsonObject("system").get("platform")
-                val platformId = if (platform.isJsonNull) null else platform.asString
-                SrcRun(place, videoLink, players, time, platformId)
-            }
-            SrcLeaderboard(weblink, lbRuns)
-        }
-
-        val userDeserializer = JsonDeserializer { json, _, _ ->
-            val platformObj = json.asJsonObject.getAsJsonObject("data")
-            val name = platformObj.getAsJsonObject("names").get("international").asString
-            SrcUser(name)
-        }
-
-        val platformDeserializer = JsonDeserializer { json, _, _ ->
-            SrcPlatform(json.asJsonObject.getAsJsonObject("data").get("name").asString)
-        }
-
-        return GsonBuilder()
-                .registerTypeAdapter(SrcGame::class.java, gamesDeserializer)
-                .registerTypeAdapter(SrcLeaderboard::class.java, leaderboardDeserializer)
-                .registerTypeAdapter(SrcUser::class.java, userDeserializer)
-                .registerTypeAdapter(SrcPlatform::class.java, platformDeserializer)
-                .create()
+        return Gson()
     }
 
     private fun setupApi(): SrcAPI {
         return Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(SRC_API)
-                .build()
-                .create(SrcAPI::class.java)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .baseUrl(SRC_API)
+            .build()
+            .create(SrcAPI::class.java)
+    }
+
+    private suspend fun ensureStaticData() {
+        if (staticDataLoaded) return
+        try {
+            val response = api.getStaticData()
+            if (response.isSuccessful) {
+                response.body()?.platformList?.forEach {
+                    platformCache[it.id] = it.name
+                }
+                staticDataLoaded = true
+            }
+        } catch (_: Exception) {
+            // Ignore static data loading failures
+        }
     }
 
     suspend fun fetchGameData(gameName: String): Result<SrcGame> {
         return gameCache.getOrElse(gameName) {
-            api.game(gameName, "categories.variables").body()?.takeIf { it.name.lowercase(Locale.US) == gameName.lowercase(
-                Locale.US
-            ) }
-                    ?.also { gameCache[gameName] = it }
+            try {
+                // First search for the game to get its URL
+                val searchResponse = api.searchGames(SearchRequest(query = gameName, includeGames = true, limit = 20))
+                if (!searchResponse.isSuccessful || searchResponse.body() == null) {
+                    return@getOrElse null
+                }
+
+                val matchingGame = searchResponse.body()!!.gameList.find {
+                    it.name.lowercase(Locale.US) == gameName.lowercase(Locale.US)
+                } ?: searchResponse.body()!!.gameList.firstOrNull()
+                    ?: return@getOrElse null
+
+                // Get full game data with categories
+                val gameDataResponse = api.getGameData(GetGameDataRequest(gameUrl = matchingGame.url))
+                if (!gameDataResponse.isSuccessful || gameDataResponse.body() == null || gameDataResponse.body()!!.game == null) {
+                    return@getOrElse null
+                }
+
+                val gameData = gameDataResponse.body()!!
+                val game = gameData.game!!
+
+                // Build categories with variables
+                val categories = gameData.categories.map { category ->
+                    val subCategories = gameData.variables
+                        .filter { it.isSubcategory && it.categoryId == category.id }
+                        .map { variable ->
+                            val variableValues = gameData.values
+                                .filter { it.variableId == variable.id }
+                                .map { SrcValue(it.id, it.name) }
+                            SrcVariable(variable.id, variable.name, variableValues)
+                        }
+
+                    SrcCategory(
+                        name = category.name,
+                        subCategories = subCategories,
+                        leaderboardUrl = null, // Will be set when fetching leaderboards
+                        id = category.id
+                    )
+                }
+
+                SrcGame(
+                    name = game.name,
+                    categories = categories,
+                    links = listOf(SrcLink("self", game.url)),
+                    id = game.id
+                ).also { gameCache[gameName] = it }
+            } catch (_: Exception) {
+                null
+            }
         }.toResult()
     }
 
@@ -219,31 +337,78 @@ class Src private constructor() {
         return when (val game = fetchGameData(gameName)) {
             is Success -> {
                 try {
-                    game.value.categories.flatMap { category ->
-                        if (category.leaderboardUrl == null) return@flatMap emptyList<SrcLeaderboard>()
-                        if (category.subCategories.isEmpty()) {
-                            api.leaderboard(category.leaderboardUrl).body()?.run {
-                                categoryName = category.name
-                                initWrData(api)
-                                listOf(this)
-                            } ?: emptyList()
-                        } else {
-                            val pairs = category.subCategories.map { variable ->
-                                variable.values.map { variable to it }
+                    ensureStaticData()
+                    val leaderboards = mutableListOf<SrcLeaderboard>()
+
+                    for (category in game.value.categories) {
+                        if (category.id.isEmpty()) continue
+
+                        val leaderboardRequest = GetLeaderboardRequest(
+                            gameId = game.value.id,
+                            categoryId = category.id,
+                            video = 0,
+                            verified = 1
+                        )
+
+                        val response = api.getLeaderboard(leaderboardRequest)
+                        if (!response.isSuccessful || response.body() == null) continue
+
+                        val lbData = response.body()!!
+                        if (lbData.runList.isEmpty()) continue
+
+                        // Build player lookup
+                        val playerLookup = lbData.playerList.associateBy { it.id }
+
+                        // Convert runs
+                        val runs = lbData.runList.mapNotNull { run ->
+                            val players = run.playerIds.mapNotNull { playerId ->
+                                playerLookup[playerId]?.name
                             }
-                            Lists.cartesianProduct(pairs).mapNotNull { varValPairList ->
-                                val varQuery: Map<String, String> = varValPairList.associate {
-                                    "var-${it.first.id}" to it.second.id
-                                }
-                                api.leaderboard(category.leaderboardUrl, varQuery).body()?.apply {
-                                    categoryName = category.name
-                                    subcategories = varValPairList.map { it.second.label }
-                                    initWrData(api)
-                                }
-                            }
+
+                            val runTime = (run.time ?: run.timeWithLoads ?: 0f)
+                            val platform = run.platformId?.let { platformCache[it] } ?: "[unknown]"
+
+                            SrcRun(
+                                place = run.place ?: 0,
+                                videoLink = run.video?.let { SrcLink("video", it) },
+                                players = players,
+                                time = (runTime * 1000).roundToLong(),
+                                platform = platform
+                            )
                         }
-                    }.toResult()
-                } catch (e: OutOfMemoryError) {
+
+                        val leaderboard = SrcLeaderboard(
+                            weblink = "https://www.speedrun.com/${game.value.url}/${category.url}",
+                            runs = runs,
+                            id = category.id
+                        ).apply {
+                            categoryName = category.name
+
+                            // Set subcategory info from run values
+                            if (category.subCategories.isNotEmpty()) {
+                                val wrRun = lbData.runList.firstOrNull()
+                                if (wrRun != null && wrRun.valueIds.isNotEmpty()) {
+                                    val valueLookup = lbData.runList
+                                        .flatMap { it.valueIds }
+                                        .distinct()
+                                        .mapNotNull { valueId ->
+                                            game.value.categories
+                                                .flatMap { it.subCategories }
+                                                .flatMap { it.values }
+                                                .find { it.id == valueId }
+                                        }
+                                    subcategories = valueLookup.map { it.label }
+                                }
+                            }
+
+                            initWrData(api)
+                        }
+
+                        leaderboards.add(leaderboard)
+                    }
+
+                    leaderboards.toResult()
+                } catch (e: Exception) {
                     Failure
                 }
             }
@@ -252,9 +417,7 @@ class Src private constructor() {
     }
 
     companion object {
-
         private val instance by lazy { Src() }
-
         operator fun invoke() = instance
     }
 }

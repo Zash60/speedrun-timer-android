@@ -56,9 +56,9 @@ class MainActivity : AppCompatActivity() {
 
         // Edge-to-edge with Material 3 - hide system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowCompat.getInsetsController(window, window.decorView).let { controller ->
-            controller.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior = androidx.core.view.WindowInsetsCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
         setSupportActionBar(viewBinding.toolbar)

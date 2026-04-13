@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:minHeight="72dp"
         android:paddingStart="16dp"
-        android:paddingEnd="12dp">
+        android:paddingEnd="16dp">
 
         <TextView
             android:id="@+id/categoryName"
@@ -33,9 +33,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/pbText"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/next_img"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintHorizontal_weight="1"
             tools:text="Any%" />
 
         <TextView
@@ -92,20 +91,8 @@
             app:layout_constraintTop_toTopOf="@id/pbText"
             app:layout_constraintBottom_toBottomOf="@id/pbText"
             app:layout_constraintStart_toEndOf="@id/runsText"
-            app:layout_constraintEnd_toStartOf="@+id/next_img"
-            tools:text="15" />
-
-        <ImageView
-            android:id="@+id/next_img"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/img_play_desc"
-            app:srcCompat="@drawable/ic_action_play"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:tint="?android:attr/textColorSecondary" />
+            tools:text="15" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

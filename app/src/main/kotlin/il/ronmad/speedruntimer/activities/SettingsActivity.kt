@@ -11,7 +11,6 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(android.R.id.content)
 
         // Fullscreen: hide status bar and navigation bar
         WindowCompat.setDecorFitsSystemWindows(window, false)

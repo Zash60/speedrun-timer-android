@@ -1,17 +1,22 @@
 package il.ronmad.speedruntimer.activities
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -40,6 +45,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: InstalledAppsViewModel
     private var installedGames: List<String> = emptyList()
 
+    private lateinit var requestOverlayPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+    private lateinit var requestNotificationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -52,6 +60,31 @@ class MainActivity : AppCompatActivity() {
         setupRealm()
 
         viewModel = ViewModelProvider(this)[InstalledAppsViewModel::class]
+
+        // Permission launchers
+        requestOverlayPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            checkPermissionsAndProceed()
+        }
+
+        requestNotificationPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (!granted) {
+                Dialogs.showNotificationPermissionDialog(this) {
+                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                    }
+                    startActivity(intent)
+                }
+            } else {
+                checkPermissionsAndProceed()
+            }
+        }
+
+        // Check permissions on first launch
+        checkPermissionsAndProceed()
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
@@ -68,6 +101,39 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.fragment_container, GamesListFragment(), TAG_GAMES_LIST_FRAGMENT)
                 .commit()
         }
+    }
+
+    /**
+     * Checks if required permissions are granted.
+     * If not, requests them before allowing timer usage.
+     */
+    private fun checkPermissionsAndProceed() {
+        // Check overlay permission
+        if (!Settings.canDrawOverlays(this)) {
+            Dialogs.showOverlayPermissionRequiredDialog(this) {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+                requestOverlayPermissionLauncher.launch(intent)
+            }
+            return
+        }
+
+        // Check notification permission (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+
+        // All permissions granted — proceed normally
     }
 
     override fun onResume() {

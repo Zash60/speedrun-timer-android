@@ -1,16 +1,9 @@
 package il.ronmad.speedruntimer.fragments
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.ActionMode
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -30,46 +23,11 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     var mActionMode: ActionMode? = null
         private set
     private var mActionModeCallback: MyActionModeCallback? = null
-    private lateinit var getOverlayPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
-    private lateinit var requestNotificationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
-
-    private var waitingForTimerPermission = false
-    private var pendingTimerLaunch = false
-    private var alreadyRequestedNotifications = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
-
-        getOverlayPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) {
-            if (Settings.canDrawOverlays(requireContext())) {
-                checkNotificationsAndStartTimer()
-            } else {
-                TimerService.isInPermissionFlow = false
-                waitingForTimerPermission = false
-                pendingTimerLaunch = false
-            }
-        }
-
-        requestNotificationPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { granted ->
-            TimerService.isInPermissionFlow = false
-            alreadyRequestedNotifications = false
-            if (granted) {
-                launchTimer()
-            } else {
-                Dialogs.showNotificationPermissionDialog(requireContext()) {
-                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                        putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
-                    }
-                    startActivity(intent)
-                }
-            }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -84,17 +42,9 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
     override fun onResume() {
         super.onResume()
         mAdapter?.onItemsEdited()
-        if (waitingForTimerPermission && !TimerService.IS_ACTIVE) {
-            if (Settings.canDrawOverlays(requireContext())) {
-                launchTimer()
-            }
-        }
     }
 
     private fun launchTimer() {
-        TimerService.isInPermissionFlow = false
-        waitingForTimerPermission = false
-        pendingTimerLaunch = false
         val selected = selectedCategory ?: return
         TimerService.launchTimer(requireContext(), game.name, selected.name)
     }
@@ -158,43 +108,9 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
             return
         }
 
-        if (!Settings.canDrawOverlays(requireContext())) {
-            TimerService.isInPermissionFlow = true
-            waitingForTimerPermission = true
-            pendingTimerLaunch = true
-            requireContext().showToast(requireContext().getString(R.string.toast_allow_permission), 1)
-            getOverlayPermissionLauncher.launch(
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:${requireActivity().packageName}")
-                )
-            )
-            return
-        }
-
-        alreadyRequestedNotifications = false
-        checkNotificationsAndStartTimer()
-    }
-
-    /**
-     * Checks notification permission (Android 13+) and launches timer if granted,
-     * or requests permission if not.
-     */
-    private fun checkNotificationsAndStartTimer() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !alreadyRequestedNotifications) {
-            val hasPermission = ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!hasPermission) {
-                TimerService.isInPermissionFlow = true
-                alreadyRequestedNotifications = true
-                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
-            }
-        }
-
+        // Permissions are checked on app launch by MainActivity.
+        // If we reach here, permissions should already be granted.
+        TimerService.isInPermissionFlow = true
         launchTimer()
     }
 

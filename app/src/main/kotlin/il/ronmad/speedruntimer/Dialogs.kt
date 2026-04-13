@@ -303,6 +303,17 @@ object Dialogs {
         }
     }
 
+    internal fun showOverlayPermissionRequiredDialog(context: Context, onGoToSettings: () -> Unit) {
+        MaterialDialog(context).show {
+            title(R.string.dialog_overlay_required)
+            message(R.string.dialog_overlay_message)
+            positiveButton(R.string.go_to_settings) { onGoToSettings() }
+            negativeButton(android.R.string.cancel)
+            cancelable(false)
+            cancelOnTouchOutside(false)
+        }
+    }
+
     internal fun showNotificationPermissionDialog(context: Context, onGoToSettings: () -> Unit) {
         MaterialDialog(context).show {
             title(R.string.dialog_notification_required)

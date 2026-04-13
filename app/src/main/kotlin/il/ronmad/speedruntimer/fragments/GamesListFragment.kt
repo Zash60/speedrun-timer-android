@@ -22,10 +22,6 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        actionBar?.apply {
-            title = requireContext().getString(R.string.app_name)
-            setDisplayHomeAsUpEnabled(false)
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

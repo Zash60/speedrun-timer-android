@@ -35,7 +35,7 @@ class CountdownPreference : DialogPreference {
 
     override fun onGetDefaultValue(a: TypedArray, index: Int) = a.getInt(index, 0).toLong()
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
         countdown = if (restorePersistedValue)
             getPersistedLong(countdown) else ((defaultValue as? Long) ?: 0)

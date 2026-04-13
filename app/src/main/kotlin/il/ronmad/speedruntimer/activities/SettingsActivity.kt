@@ -19,7 +19,6 @@ class SettingsActivity : AppCompatActivity() {
             controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, SettingsFragment())
                 .commit()

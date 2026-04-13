@@ -60,9 +60,6 @@ class MainActivity : AppCompatActivity() {
             controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        setSupportActionBar(viewBinding.toolbar)
-        viewBinding.appBarLayout.elevation = pixelToDp(4f).toFloat()
-
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
         setupRealm()
 

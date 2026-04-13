@@ -109,7 +109,7 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
                         )
                         .replace(
                             R.id.fragment_container,
-                            GameFragment.newInstance(game.name),
+                            CategoryListFragment.newInstance(game.name),
                             TAG_GAME_FRAGMENT
                         )
                         .addToBackStack(null)

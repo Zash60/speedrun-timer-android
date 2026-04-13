@@ -28,6 +28,11 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         super.onCreate(savedInstanceState)
         val gameName = requireArguments().getString(ARG_GAME_NAME)!!
         game = realm.getGameByName(gameName)!!
+
+        actionBar?.apply {
+            title = game.name
+            setDisplayHomeAsUpEnabled(true)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -37,11 +42,28 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
         checkEmptyList()
 
         fabAdd.setOnClickListener { onFabAddPressed() }
+        fabAdd.show()
     }
 
     override fun onResume() {
         super.onResume()
         mAdapter?.onItemsEdited()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        actionBar?.setDisplayHomeAsUpEnabled(false)
+    }
+
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                requireActivity().supportFragmentManager.popBackStack()
+                true
+            }
+            else -> false
+        }
     }
 
     private fun launchTimer() {

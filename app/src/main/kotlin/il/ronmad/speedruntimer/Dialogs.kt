@@ -52,7 +52,7 @@ object Dialogs {
             }
             positiveButton(R.string.create) {
                 if (newCategoryViewBinding.newCategoryInput.isValidForCategory(game)) {
-                    callback(newCategoryViewBinding.newCategoryInput.text.toString())
+                    callback(newCategoryViewBinding.newCategoryInput.text?.toString().orEmpty())
                     dismiss()
                 }
             }
@@ -80,7 +80,7 @@ object Dialogs {
             positiveButton(R.string.create) {
                 if (newSplitViewBinding.newSplitInput.isValidForSplit(category)) {
                     val position = newSplitViewBinding.positionSpinner.selectedItem as Int - 1
-                    callback(newSplitViewBinding.newSplitInput.text.toString(), position)
+                    callback(newSplitViewBinding.newSplitInput.text?.toString().orEmpty(), position)
                     dismiss()
                 }
             }
@@ -135,12 +135,12 @@ object Dialogs {
                 editCategoryViewBinding.editTime.setEditTextsFromTime(0L)
             }
             positiveButton(R.string.save) {
-                val newName = editCategoryViewBinding.categoryName.text.toString()
+                val newName = editCategoryViewBinding.categoryName.text?.toString().orEmpty()
                 if (newName == category.name
                     || editCategoryViewBinding.categoryName.isValidForCategory(category.getGame())
                 ) {
                     val newTime = editCategoryViewBinding.editTime.getTimeFromEditTexts()
-                    val newRunCountStr = editCategoryViewBinding.runCount.text.toString()
+                    val newRunCountStr = editCategoryViewBinding.runCount.text?.toString().orEmpty()
                     val newRunCount = if (newRunCountStr.isEmpty()) 0 else Integer.parseInt(newRunCountStr)
                     callback(newName, newTime, newRunCount)
                     dismiss()
@@ -187,7 +187,7 @@ object Dialogs {
                 editSplitViewBinding.editTimeBest.setEditTextsFromTime(0L)
             }
             positiveButton(R.string.save) {
-                val newName = editSplitViewBinding.nameInput.text.toString()
+                val newName = editSplitViewBinding.nameInput.text?.toString().orEmpty()
                 if (newName == split.name
                     || editSplitViewBinding.nameInput.isValidForSplit(split.getCategory())
                 ) {

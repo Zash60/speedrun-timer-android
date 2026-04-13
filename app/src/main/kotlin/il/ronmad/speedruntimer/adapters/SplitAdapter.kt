@@ -30,7 +30,7 @@ class SplitAdapter(splits: List<Split>, comparison: Comparison = Comparison.PERS
         super.onBindViewHolder(holder, position)
         holder.apply {
             val split = item
-            viewBinding.nameText.text = split.name
+            viewBinding.splitName.text = split.name
             viewBinding.segmentDurationText.text = when (comparison) {
                 Comparison.PERSONAL_BEST -> split.pbTime.getFormattedTime(dashIfZero = true)
                 Comparison.BEST_SEGMENTS -> split.bestTime.getFormattedTime(dashIfZero = true)

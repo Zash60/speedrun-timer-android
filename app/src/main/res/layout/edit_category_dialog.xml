@@ -1,95 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    android:paddingEnd="@dimen/activity_vertical_margin">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
 
-    <TextView
-        android:id="@+id/nameText"
-        android:layout_width="wrap_content"
+    <!-- Name -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:text="@string/text_name"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/categoryName"
-        app:layout_constraintBottom_toTopOf="@+id/pbEditTitle"
-        app:layout_constraintHorizontal_weight="0" />
+        android:hint="@string/text_name"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-    <EditText
-        android:id="@+id/categoryName"
-        android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/categoryName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textNoSuggestions"
+            android:maxLines="1"
+            tools:ignore="Autofill" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- PB Time -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:hint="@string/hint_game_category"
-        android:inputType="textNoSuggestions"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/nameText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintBaseline_toBaselineOf="@id/nameText"
-        tools:ignore="Autofill" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp">
 
-    <TextView
-        android:id="@+id/pbEditTitle"
-        android:layout_width="wrap_content"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pb_text"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorSecondary"
+            android:minWidth="60dp" />
+
+        <include layout="@layout/edit_time_layout"
+            android:id="@+id/editTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Run Count -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:paddingStart="8dp"
-        android:paddingBottom="8dp"
-        android:paddingEnd="0dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/pb_text"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toBottomOf="@id/nameText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/editTime"
-        app:layout_constraintBottom_toTopOf="@+id/runCountEditTitle" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp">
 
-    <include layout="@layout/edit_time_layout"
-        android:id="@+id/editTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/pbEditTitle"
-        app:layout_constraintTop_toTopOf="@id/pbEditTitle"
-        app:layout_constraintBottom_toBottomOf="@id/pbEditTitle" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/run_count_text"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorSecondary"
+            android:minWidth="60dp"
+            android:labelFor="@+id/runCount" />
 
-    <TextView
-        android:id="@+id/runCountEditTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:paddingStart="8dp"
-        android:paddingBottom="8dp"
-        android:paddingEnd="4dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/run_count_text"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        android:labelFor="@+id/runCount"
-        app:layout_constraintTop_toBottomOf="@id/pbEditTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/runCount"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-    <EditText
-        android:id="@+id/runCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="48dp"
-        android:layout_marginStart="4dp"
-        android:gravity="center"
-        android:inputType="number"
-        android:maxLines="1"
-        android:maxLength="9"
-        android:selectAllOnFocus="true"
-        app:layout_constraintTop_toTopOf="@id/runCountEditTitle"
-        app:layout_constraintBottom_toBottomOf="@id/runCountEditTitle"
-        app:layout_constraintStart_toEndOf="@id/runCountEditTitle"
-        app:layout_constraintBaseline_toBaselineOf="@id/runCountEditTitle"
-        tools:ignore="Autofill" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/runCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:gravity="center"
+                android:maxLength="9"
+                android:selectAllOnFocus="true"
+                tools:ignore="Autofill" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+</LinearLayout>

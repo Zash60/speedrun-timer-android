@@ -1,40 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:focusable="true"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    android:checkable="true"
     android:clickable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:minHeight="?android:attr/listPreferredItemHeight">
+    android:focusable="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:checkedIconTint="?attr/colorPrimary"
+    app:strokeColor="?attr/colorPrimary">
 
-    <TextView
-        android:id="@+id/gameName"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/next_img"
-        app:layout_constraintHorizontal_weight="1"
-        tools:text="Monument Valley" />
+        android:minHeight="72dp"
+        android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/next_img"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/img_next_desc"
-        app:srcCompat="@drawable/ic_action_next"
-        app:layout_constraintTop_toTopOf="@id/gameName"
-        app:layout_constraintBottom_toBottomOf="@id/gameName"
-        app:layout_constraintStart_toEndOf="@id/gameName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="0" />
+        <TextView
+            android:id="@+id/gameName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/next_img"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="The Legend of Zelda" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/next_img"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/img_play_desc"
+            app:srcCompat="@drawable/ic_action_play"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="?android:attr/textColorSecondary" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

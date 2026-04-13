@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="?android:attr/listPreferredItemHeightSmall"
-    android:focusable="true"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="2dp"
+    android:checkable="true"
     android:clickable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:focusable="true"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:checkedIconTint="?attr/colorPrimary"
+    app:strokeColor="?attr/colorPrimary">
 
-    <TextView
-        android:id="@+id/nameText"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:gravity="start"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/segmentDurationText"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintHorizontal_weight="2"
-        tools:text="Double Jump" />
+        android:orientation="horizontal"
+        android:minHeight="48dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/segmentDurationText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:gravity="end"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/nameText"
-        app:layout_constraintEnd_toStartOf="@+id/splitTimeText"
-        app:layout_constraintHorizontal_weight="1"
-        tools:text="9:00.75" />
+        <TextView
+            android:id="@+id/splitName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:paddingVertical="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Segment 1" />
 
-    <TextView
-        android:id="@+id/splitTimeText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:gravity="end"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/segmentDurationText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="1"
-        tools:text="1:56.80" />
+        <TextView
+            android:id="@+id/segmentDurationText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingVertical="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:fontFamily="monospace"
+            tools:text="+0:12.345" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/splitTimeText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingVertical="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:fontFamily="monospace"
+            tools:text="1:23.456" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,92 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
-    <TextView
-        android:id="@+id/numOfRunsText"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/wrText"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.0"
-        tools:text="No. of runs on the leaderboard: 24" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/wrText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="4dp"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toBottomOf="@id/numOfRunsText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/placeText"
-        tools:text="WR is 16:03.94 by UncleRonny on PC" />
+        <TextView
+            android:id="@+id/numOfRunsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="No. of runs on the leaderboard: 150" />
 
-    <TextView
-        android:id="@+id/placeText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toBottomOf="@id/wrText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/buttonLBLink"
-        tools:text="Your PB would put you at 1st place!" />
+        <TextView
+            android:id="@+id/wrText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            tools:text="WR is 1:23.456 by Player1 on Platform" />
 
-    <ImageView
-        android:id="@+id/linkImg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
-        android:contentDescription="@string/img_link_desc"
-        app:layout_constraintTop_toTopOf="@+id/buttonLBLink"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonLBLink"
-        app:layout_constraintBottom_toBottomOf="@+id/buttonLBLink"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:srcCompat="@drawable/ic_link_black_24dp" />
+        <TextView
+            android:id="@+id/placeText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorPrimary"
+            android:visibility="gone"
+            tools:text="Your PB would put you at 42nd place!" />
 
-    <Button
-        android:id="@+id/buttonLBLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_lb_link"
-        android:textColor="@color/colorAccent"
-        style="?android:attr/borderlessButtonStyle"
-        app:layout_constraintTop_toBottomOf="@id/placeText"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonWRLink"
-        app:layout_constraintStart_toEndOf="@id/linkImg" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
 
-    <Button
-        android:id="@+id/buttonWRLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_wr_link"
-        android:textColor="@color/colorAccent"
-        style="?android:attr/borderlessButtonStyle"
-        app:layout_constraintTop_toTopOf="@id/buttonLBLink"
-        app:layout_constraintBottom_toBottomOf="@id/buttonLBLink"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/buttonLBLink" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonWRLink"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_wr_link" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLBLink"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_lb_link" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -49,7 +49,13 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     override fun onResume() {
         super.onResume()
+        fabAdd.show()
         mAdapter?.onItemsEdited()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        fabAdd.hide()
     }
 
     override fun onDestroyView() {

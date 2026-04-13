@@ -17,6 +17,7 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -53,15 +54,13 @@ class MainActivity : AppCompatActivity() {
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Fullscreen: hide status bar and navigation bar
-        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
-        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).let { controller ->
-            controller.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+        // Edge-to-edge with Material 3
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = true
+        insetsController.isAppearanceLightNavigationBars = true
 
         setSupportActionBar(viewBinding.toolbar)
-        viewBinding.appBarLayout.elevation = pixelToDp(4f).toFloat()
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
         setupRealm()

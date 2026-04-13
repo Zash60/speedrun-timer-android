@@ -5,7 +5,7 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
+    android:fitsSystemWindows="true"
     tools:context=".activities.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -15,22 +15,14 @@
         android:fitsSystemWindows="true"
         android:animateLayoutChanges="true">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            android:theme="@style/AppTheme.AppBarOverlay"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="0dp"
+            app:titleTextColor="?attr/colorOnPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            android:visibility="gone">
-
-        </com.google.android.material.tabs.TabLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -50,7 +42,6 @@
         android:clickable="true"
         android:contentDescription="@string/add"
         android:focusable="true"
-        app:fabSize="normal"
         app:srcCompat="@drawable/ic_add_black_24dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

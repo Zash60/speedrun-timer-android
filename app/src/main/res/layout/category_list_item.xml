@@ -1,114 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:focusable="true"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    android:checkable="true"
     android:clickable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:minHeight="?android:attr/listPreferredItemHeight">
+    android:focusable="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:checkedIconTint="?attr/colorPrimary"
+    app:strokeColor="?attr/colorPrimary"
+    tools:background="?attr/colorSurfaceContainerHighest">
 
-    <TextView
-        android:id="@+id/categoryName"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="72dp"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/pbText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/next_img"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintHorizontal_weight="1"
-        tools:text="Any%" />
+        android:paddingEnd="12dp">
 
-    <TextView
-        android:id="@+id/pbText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp"
-        android:text="@string/pb_text"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toBottomOf="@id/categoryName"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/pbTime"
-        app:layout_constraintHorizontal_weight="0" />
+        <TextView
+            android:id="@+id/categoryName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/pbText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/next_img"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintHorizontal_weight="1"
+            tools:text="Any%" />
 
-    <TextView
-        android:id="@+id/pbTime"
-        android:text="@string/pb_placeholder"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="@id/pbText"
-        app:layout_constraintBottom_toBottomOf="@id/pbText"
-        app:layout_constraintStart_toEndOf="@id/pbText"
-        app:layout_constraintEnd_toStartOf="@+id/pbRunsSpace"
-        app:layout_constraintHorizontal_weight="2" />
+        <TextView
+            android:id="@+id/pbText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pb_text"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintTop_toBottomOf="@id/categoryName"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/pbTime" />
 
-    <Space
-        android:id="@+id/pbRunsSpace"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/pbText"
-        app:layout_constraintBottom_toBottomOf="@id/pbText"
-        app:layout_constraintStart_toEndOf="@id/pbTime"
-        app:layout_constraintEnd_toStartOf="@+id/runsText"
-        app:layout_constraintHorizontal_weight="1" />
+        <TextView
+            android:id="@+id/pbTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pb_placeholder"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="@id/pbText"
+            app:layout_constraintBottom_toBottomOf="@id/pbText"
+            app:layout_constraintStart_toEndOf="@id/pbText"
+            app:layout_constraintEnd_toStartOf="@+id/pbRunsSpace"
+            app:layout_constraintHorizontal_chainStyle="packed" />
 
-    <TextView
-        android:id="@+id/runsText"
-        android:text="@string/runs_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="@id/pbText"
-        app:layout_constraintBottom_toBottomOf="@id/pbText"
-        app:layout_constraintStart_toEndOf="@id/pbRunsSpace"
-        app:layout_constraintEnd_toStartOf="@+id/runsNum"
-        app:layout_constraintHorizontal_weight="0" />
+        <Space
+            android:id="@+id/pbRunsSpace"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/pbText"
+            app:layout_constraintBottom_toBottomOf="@id/pbText"
+            app:layout_constraintStart_toEndOf="@id/pbTime"
+            app:layout_constraintEnd_toStartOf="@+id/runsText" />
 
-    <TextView
-        android:id="@+id/runsNum"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.AppCompat"
-        app:layout_constraintTop_toTopOf="@id/pbText"
-        app:layout_constraintBottom_toBottomOf="@id/pbText"
-        app:layout_constraintStart_toEndOf="@id/runsText"
-        app:layout_constraintEnd_toStartOf="@+id/runsImgSpace"
-        app:layout_constraintHorizontal_weight="0"
-        tools:text="15" />
+        <TextView
+            android:id="@+id/runsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/runs_text"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintTop_toTopOf="@id/pbText"
+            app:layout_constraintBottom_toBottomOf="@id/pbText"
+            app:layout_constraintStart_toEndOf="@id/pbRunsSpace"
+            app:layout_constraintEnd_toStartOf="@+id/runsNum" />
 
-    <Space
-        android:id="@+id/runsImgSpace"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/pbText"
-        app:layout_constraintBottom_toBottomOf="@id/pbText"
-        app:layout_constraintStart_toEndOf="@id/runsNum"
-        app:layout_constraintEnd_toEndOf="@id/categoryName"
-        app:layout_constraintHorizontal_weight="2" />
+        <TextView
+            android:id="@+id/runsNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            app:layout_constraintTop_toTopOf="@id/pbText"
+            app:layout_constraintBottom_toBottomOf="@id/pbText"
+            app:layout_constraintStart_toEndOf="@id/runsText"
+            app:layout_constraintEnd_toStartOf="@+id/next_img"
+            tools:text="15" />
 
-    <ImageView
-        android:id="@+id/next_img"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/img_play_desc"
-        app:srcCompat="@drawable/ic_action_play"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/categoryName"
-        app:layout_constraintHorizontal_weight="1" />
+        <ImageView
+            android:id="@+id/next_img"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/img_play_desc"
+            app:srcCompat="@drawable/ic_action_play"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="?android:attr/textColorSecondary" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

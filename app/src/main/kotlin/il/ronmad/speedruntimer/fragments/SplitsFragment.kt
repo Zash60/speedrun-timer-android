@@ -44,6 +44,16 @@ class SplitsFragment : BaseFragment<FragmentSplitsBinding>(FragmentSplitsBinding
         fabAdd.setOnClickListener { onFabAddPressed() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        fabAdd.show()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        fabAdd.hide()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         actionBar?.subtitle = null

@@ -28,6 +28,16 @@ class GamesListFragment : BaseFragment<FragmentGamesListBinding>(FragmentGamesLi
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        fabAdd.show()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        fabAdd.hide()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()

@@ -63,6 +63,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         if (preference is CountdownPreference) {
             val fragment = CountdownPreferenceDialogFragment.newInstance(preference.key)
+            @Suppress("DEPRECATION")
+            fragment.setTargetFragment(this, 0)
             fragment.show(parentFragmentManager, TAG_COUNTDOWN_PREFERENCE_FRAGMENT)
         } else {
             super.onDisplayPreferenceDialog(preference)

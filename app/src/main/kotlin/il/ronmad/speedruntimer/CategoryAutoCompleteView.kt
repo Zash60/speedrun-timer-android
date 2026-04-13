@@ -5,7 +5,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ArrayAdapter
-import androidx.appcompat.widget.AppCompatAutoCompleteTextView
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.common.collect.Lists
@@ -15,7 +15,7 @@ import il.ronmad.speedruntimer.web.Success
 import kotlinx.coroutines.*
 import java.io.IOException
 
-class CategoryAutoCompleteView : AppCompatAutoCompleteTextView {
+class CategoryAutoCompleteView : MaterialAutoCompleteTextView {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)

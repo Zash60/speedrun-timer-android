@@ -19,25 +19,6 @@ import java.lang.reflect.Type
 import java.util.Locale
 import kotlin.math.roundToLong
 
-// ==================== API Interface ====================
-
-interface SrcAPI {
-    @POST("GetSearch")
-    suspend fun searchGames(@Body request: SearchRequest): Response<SearchResponse>
-
-    @POST("GetGameData")
-    suspend fun getGameData(@Body request: GetGameDataRequest): Response<GameDataResponse>
-
-    @POST("GetGameLeaderboard2")
-    suspend fun getLeaderboard(@Body request: GetLeaderboardRequest): Response<LeaderboardResponse>
-
-    @POST("GetUserSummary")
-    suspend fun getUser(@Body request: GetUserRequest): Response<UserResponse>
-
-    @POST("GetStaticData")
-    suspend fun getStaticData(@Body request: EmptyRequest = EmptyRequest()): Response<StaticDataResponse>
-}
-
 // ==================== Request Models ====================
 
 data class SearchRequest(
@@ -54,13 +35,32 @@ data class GetGameDataRequest(
 data class GetLeaderboardRequest(
     val gameId: String,
     val categoryId: String,
-    val video: Int = 0, // 0 = include runs without video
-    val verified: Int = 1, // 1 = only verified runs
+    val video: Int = 0,
+    val verified: Int = 1,
     val page: Int = 1
 )
 
 data class GetUserRequest(val url: String)
 object EmptyRequest
+
+// ==================== API Interface ====================
+
+interface SrcAPI {
+    @POST("GetSearch")
+    suspend fun searchGames(@Body request: SearchRequest): Response<SearchResponse>
+
+    @POST("GetGameData")
+    suspend fun getGameData(@Body request: GetGameDataRequest): Response<GameDataResponse>
+
+    @POST("GetGameLeaderboard2")
+    suspend fun getLeaderboard(@Body request: GetLeaderboardRequest): Response<LeaderboardResponse>
+
+    @POST("GetUserSummary")
+    suspend fun getUser(@Body request: GetUserRequest): Response<UserResponse>
+
+    @POST("GetStaticData")
+    suspend fun getStaticData(@Body request: EmptyRequest = EmptyRequest): Response<StaticDataResponse>
+}
 
 // ==================== Response Models ====================
 
@@ -188,7 +188,8 @@ data class SrcGame(
     val name: String,
     val categories: List<SrcCategory>,
     val links: List<SrcLink>,
-    val id: String = ""
+    val id: String = "",
+    val url: String = ""
 ) {
     companion object {
         val EMPTY_GAME = SrcGame("", emptyList(), emptyList())
@@ -325,7 +326,8 @@ class Src private constructor() {
                     name = game.name,
                     categories = categories,
                     links = listOf(SrcLink("self", game.url)),
-                    id = game.id
+                    id = game.id,
+                    url = game.url
                 ).also { gameCache[gameName] = it }
             } catch (_: Exception) {
                 null

@@ -69,7 +69,11 @@ class GameFragment : BaseFragment<FragmentGameBinding>(FragmentGameBinding::infl
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                requireActivity().supportFragmentManager.popBackStack()
+                if (viewPager.currentItem == TAB_INFO) {
+                    viewPager.currentItem = TAB_CATEGORIES
+                } else {
+                    requireActivity().supportFragmentManager.popBackStack()
+                }
                 true
             }
             else -> false

@@ -54,7 +54,10 @@ class CategoryListFragment : BaseFragment<FragmentCategoryListBinding>(FragmentC
 
     override fun onDestroyView() {
         super.onDestroyView()
-        actionBar?.setDisplayHomeAsUpEnabled(false)
+        actionBar?.apply {
+            setDisplayHomeAsUpEnabled(false)
+            title = requireContext().getString(R.string.app_name)
+        }
     }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")

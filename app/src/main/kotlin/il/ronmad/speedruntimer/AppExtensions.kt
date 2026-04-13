@@ -221,4 +221,5 @@ fun ExpandableListView.getExpandedGroupPositions(): List<Int> =
 /**
  * Wraps the receiver in a Success if not null, or Failure otherwise
  */
+@JvmName("toResult")
 fun <T> T?.toResult(): il.ronmad.speedruntimer.web.Result<T> = this?.let { Success(it) } ?: Failure
